@@ -1,5 +1,4 @@
 import nodemailer from "nodemailer"
-import "dotenv/config"
 
 const transporter = nodemailer.createTransport({
     host: "smtp-relay.brevo.com",
@@ -16,7 +15,7 @@ const sendEmail = async ({to, subject, body}) => {
         to,
         subject,
         html: body,
-    })
+    });
     return response;
 }
 

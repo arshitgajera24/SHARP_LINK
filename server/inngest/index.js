@@ -2,7 +2,6 @@ import { Inngest } from "inngest";
 import User from "../models/User.js";
 import Connection from "../models/Connection.js";
 import sendEmail from "../config/nodeMailer.js";
-import "dotenv/config"
 
 export const inngest = new Inngest({ id: "sharp-link" });
 
