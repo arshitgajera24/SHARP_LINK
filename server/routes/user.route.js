@@ -11,4 +11,8 @@ userRouter.route("/discover").post(protect, userControllers.discoverUsers);
 userRouter.route("/follow").post(protect, userControllers.followUser);
 userRouter.route("/unfollow").post(protect, userControllers.unfollowUser);
 
+userRouter.route("/connect").post(protect, userControllers.sendConnectionRequest);
+userRouter.route("/accept").post(protect, userControllers.acceptConnectionRequest);
+userRouter.route("/connections").get(protect, userControllers.getUserConnections);
+
 export default userRouter;
