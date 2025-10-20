@@ -2,6 +2,7 @@ import { Inngest } from "inngest";
 import User from "../models/User.js";
 import Connection from "../models/Connection.js";
 import sendEmail from "../config/nodeMailer.js";
+import "dotenv/config"
 
 export const inngest = new Inngest({ id: "sharp-link" });
 
@@ -92,7 +93,7 @@ const sendNewConnectionRequestReminder = inngest.createFunction(
                 return {message: "Already Accepted"}
             }
 
-            const subject = `👋 New Connection Request from SHARP LINK`;
+            const subject = `👋 New Connection Request in SHARP LINK`;
             const body = `<div style="font-family: Arial, sans-serif; padding: 20px;">
                             <h2>Hi ${connection.to_user_id.full_name},</h2>
                             <p>You have a New Connection Request from ${connection.from_user_id.full_name} - @${connection.from_user_id.username}</p>
@@ -104,7 +105,7 @@ const sendNewConnectionRequestReminder = inngest.createFunction(
             await sendEmail({
                 to: connection.to_user_id.email,
                 subject,
-                body
+                body,
             })
 
             return {message: "Reminder Sent"}
