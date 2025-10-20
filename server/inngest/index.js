@@ -111,7 +111,7 @@ const sendNewConnectionRequestReminder = inngest.createFunction(
                 body,
             })
 
-            return {message: "Reminder Sent"}
+            return {message: "Reminder Sent"};
         })
     }
 )
