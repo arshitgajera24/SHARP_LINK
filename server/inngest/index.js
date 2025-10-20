@@ -67,6 +67,10 @@ const sendNewConnectionRequestReminder = inngest.createFunction(
 
         await step.run("send-connection-request-mail", async () => {
             const connection = await Connection.findById(connectionId).populate("from_user_id to_user_id");
+            if (!connection || !connection.to_user_id || !connection.from_user_id) {
+            throw new Error("Invalid connection object");
+            }
+
             const subject = `👋 New Connection Request from SHARP LINK`;
             const body = `<div style="font-family: Arial, sans-serif; padding: 20px;">
                             <h2>Hi ${connection.to_user_id.full_name},</h2>
@@ -84,7 +88,7 @@ const sendNewConnectionRequestReminder = inngest.createFunction(
         })
 
         const in24Hours = new Date(Date.now() + 24*60*60*1000)
-        await step.sleepUntil("wait-for-24-hours", in24Hours);
+        await step.sleepUntil("wait-for-24-hours", in24Hours.toISOString());
         await step.run("send-connection-request-reminder", async () => {
             const connection = await Connection.findById(connectionId).populate("from_user_id to_user_id");
 
