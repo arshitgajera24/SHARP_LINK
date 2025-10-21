@@ -8,3 +8,30 @@
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+@keyframes heart-pop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  25% {
+    transform: scale(1.3);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+  75% {
+    transform: scale(1.2);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
+.animate-heart-pop {
+  animation: heart-pop 1.2s ease-in-out forwards;
+}

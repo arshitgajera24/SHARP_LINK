@@ -21,12 +21,13 @@ export const addUserStory = async (req, res) => {
                 file: fileBuffer,
                 fileName: media.originalname,
             })
+            const transformations = media_type === "image"
+                                    ? [{ quality: "auto" }]
+                                    : [{ height: "360" }, { format: "mp4" }];
+
             const url = imagekit.url({
                 path: response.filePath,
-                transformation: [
-                    { quanlity: "auto" },
-                    { format: "webp" },
-                ]
+                transformation: transformations
             })
             media_url = url;
         }

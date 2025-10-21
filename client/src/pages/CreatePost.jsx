@@ -2,17 +2,65 @@ import React, { useState } from 'react'
 import { dummyUserData } from '../assets/assets';
 import { Image, X } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useSelector } from 'react-redux';
+import { useAuth } from '@clerk/clerk-react';
+import api from '../api/axios.js';
+import { useNavigate } from 'react-router-dom';
 
 const CreatePost = () => {
 
+  const navigate = useNavigate();
   const [content, setContent] = useState("");
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const user = dummyUserData;
+  const user = useSelector((state) => state.user.value);
+  const {getToken} = useAuth();
 
   const handleSubmit = async () => {
+    if(!images.length && !content)
+    {
+      toast.error("Post Content is Empty");
+      return;
+    }
+    setLoading(true);
 
+    const postType = images.length && content ? "text_with_image" : images.length ? "image" : "text";
+
+      const formData = new FormData();
+      formData.append("content", content);
+      formData.append("post_type", postType);
+      images.map((image) => {
+        formData.append("images", image);
+      })
+
+      await toast.promise(
+        (async () => {
+            const {data} = await api.post("/api/post/add", formData, {
+              headers: {
+                Authorization: `Bearer ${await getToken()}`,
+              }
+            })
+
+            if(data.success)
+            {
+              navigate("/")
+            }
+            else 
+            {
+              console.log(data.message)
+              throw new Error(data.message)
+            }
+        })(),
+        {
+          loading: "Uploading...", 
+          success: <p>Post Uploaded Successfully</p>, 
+          error: <p>Post Uploading Failed</p>
+        }
+      )
+
+      
+    setLoading(false)
   }
 
 
@@ -61,8 +109,18 @@ const CreatePost = () => {
             <label htmlFor="images" className='flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition cursor-pointer'>
               <Image className='size-6' />
             </label>
-            <input type="file" id="images" accept='image/*' hidden multiple onChange={(e) => setImages([...images, ...e.target.files])}/>
-            <button disabled={loading} onClick={() => toast.promise(handleSubmit(), { loading: "Uploading...", success: <p>Post Uploaded Successfully</p>, error: <p>Post Uploading Failed</p> })} className='text-sm bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 active:scale-95 transition text-white fron-medium px-8 py-2 rounded-md cursor-pointer'>
+            <input type="file" id="images" accept='image/*' hidden multiple onChange={(e) => {
+              const selectedFiles = Array.from(e.target.files);
+              const totalFiles = images.length + selectedFiles.length;
+
+              if(totalFiles > 4)
+              {
+                toast.error("You can upload a maximum of 4 images per post");
+                return;
+              }
+              setImages([...images, ...e.target.files])}
+            }/>
+            <button disabled={loading} onClick={handleSubmit} className='text-sm bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 active:scale-95 transition text-white fron-medium px-8 py-2 rounded-md cursor-pointer'>
               Publish Post
             </button>
           </div>

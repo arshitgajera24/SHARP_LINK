@@ -16,7 +16,12 @@ const PORT = process.env.PORT || 4000;
 await connectDB();
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    origin: process.env.FRONTEND_URL,
+    methods: ["GET", "POST"],
+    credentials: false,
+}));
+
 app.use(clerkMiddleware())
 
 app.get("/", (req, res) => res.send("Backend Running Yeeeee !!"))

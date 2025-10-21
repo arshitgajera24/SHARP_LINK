@@ -15,6 +15,7 @@ export const sseController = (req, res) => {
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
     res.setHeader("Access-Control-Allow-Origin", "*");
+    res.flushHeaders();
 
     //? Add the Client's Response Object to Connections Object
     connections[userId] = res;
@@ -26,7 +27,7 @@ export const sseController = (req, res) => {
     req.on("close", () => {
         //? Remove Client's response Object from Connections Array
         delete connections[userId];
-        console.log("Client Disconnected");
+        console.log("Client Disconnected : ", userId);
     })
 }
 
@@ -47,7 +48,7 @@ export const sendMessage = async (req, res) => {
                 file: fileBuffer,
                 fileName: image.originalname,
             })
-            const media_url = imagekit.url({
+            media_url = imagekit.url({
                 path: response.filePath,
                 transformation: [
                     { quality: "auto" },
@@ -109,7 +110,7 @@ export const getUserRecentMessages = async (req, res) => {
     try {
         const {userId} = req.auth();
 
-        const messages = await Message.find({to_user_id: userId}.populate("from_user_id to_user_id")).sort({createdAt: -1});
+        const messages = await Message.find({to_user_id: userId}).populate("from_user_id to_user_id").sort({createdAt: -1});
 
         res.json({success: true, messages});
     } catch (error) {
