@@ -7,5 +7,7 @@ const storyRouter = Router();
 
 storyRouter.route("/create").post(upload.single("media"), protect, storyControllers.addUserStory);
 storyRouter.route("/get").get(protect, storyControllers.getUserStories);
+storyRouter.route("/view/:storyId").post(protect, storyControllers.viewStory);
+storyRouter.route("/viewers/:storyId").get(protect, storyControllers.getStoryViewers);
 
 export default storyRouter;

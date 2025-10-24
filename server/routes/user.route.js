@@ -14,7 +14,9 @@ userRouter.route("/unfollow").post(protect, userControllers.unfollowUser);
 
 userRouter.route("/connect").post(protect, userControllers.sendConnectionRequest);
 userRouter.route("/accept").post(protect, userControllers.acceptConnectionRequest);
-userRouter.route("/connections").get(protect, userControllers.getUserConnections);
+userRouter.route("/reject").post(protect, userControllers.rejectConnectionRequest);
+userRouter.route("/remove").post(protect, userControllers.removeFromConnections);
+userRouter.route("/connections").post(protect, userControllers.getUserConnections);
 
 userRouter.route("/profiles").post(userControllers.getUserProfiles);
 

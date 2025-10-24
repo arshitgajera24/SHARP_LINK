@@ -1,8 +1,11 @@
 import { Calendar, MapPin, PenBox, Verified } from 'lucide-react'
 import moment from 'moment'
 import React from 'react'
+import { useSelector } from 'react-redux'
 
 const UserProfileInfo = ({user, posts, profileId, setShowEdit}) => {
+    const currentUser = useSelector((state) => state.user.value)
+
   return (
     <div className='relative py-4 px-6 md:px-8 bg-white'>
       <div className='flex flex-col md:flex-row items-start gap-6'>
@@ -23,8 +26,9 @@ const UserProfileInfo = ({user, posts, profileId, setShowEdit}) => {
 
                 {/* Edit Button for Own Profile Only */}
                 {
-                    !profileId 
-                    && <button onClick={() => setShowEdit(true)} className='flex items-center cursor-pointer gap-2 border border-gray-300 hover:bg-gray-50 px-4 py-2 rounded-lg font-medium transition-colors mt-4 md:mt-0'>
+                    (!profileId || profileId === currentUser._id)
+                    &&
+                    <button onClick={() => setShowEdit(true)} className='flex items-center cursor-pointer gap-2 border border-gray-300 hover:bg-gray-50 px-4 py-2 rounded-lg font-medium transition-colors mt-4 md:mt-0'>
                         <PenBox className='w-4 h-4' />
                         Edit
                     </button>

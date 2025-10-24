@@ -5,7 +5,7 @@ const storySchema = new Schema({
     content: { type: String },
     media_url: { type: String },
     media_type: { type: String, enum: ["text", "image", "video"]},
-    view_count: [{ type: String, ref: "User" }],
+    view_count: [{ user: { type: String, ref: "User" }, viewedAt: { type: Date, default: Date.now } }],
     background_color: { type: String },
 }, {timestamps: true, minimize: false})
 

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { dummyPostsData, dummyUserData } from '../assets/assets';
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import Loading from '../components/Loading';
 import UserProfileInfo from '../components/UserProfileInfo';
 import PostCard from '../components/PostCard';
@@ -9,7 +8,10 @@ import ProfileModel from '../components/ProfileModel';
 import { useAuth } from '@clerk/clerk-react';
 import api from '../api/axios.js';
 import toast from 'react-hot-toast';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchUsers } from '../features/user/userSlice.js';
+import { MessageCircle, Plus, UserPlus } from 'lucide-react';
+import { fetchConnections } from '../features/connections/connectionsSlice.js';
 
 const Profile = () => {
 
@@ -20,6 +22,100 @@ const Profile = () => {
   const [posts, setPosts] = useState([]);
   const [activeTab, setActiveTab] = useState("Posts");
   const [showEdit, setShowEdit] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState(null);
+  const [userConnections, setUserConnections] = useState([]);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const fetchUserConnections = async (profileId) => {
+    try {
+      const token = await getToken();
+      const { data } = await api.post("/api/user/connections", { profileId }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (data.success) {
+        setUserConnections(data.connections);        
+      } else {
+        toast.error(data.message);
+      }
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const handleFollow = async () => {
+    try {
+      setIsFollowing(true);
+      const {data} = await api.post("/api/user/follow", {id: profileId}, {
+        headers: { Authorization: `Bearer ${await getToken()}` }
+      });
+
+      if(data.success){
+        toast.success(data.message);
+        dispatch(fetchUsers(await getToken()));
+      } else {
+        toast.error(data.message);
+        setIsFollowing(false);
+      }
+    } catch (err) {
+      toast.error(err.message);
+      setIsFollowing(false);
+    }
+  };
+
+  const handleUnfollow = async (userId) => {
+      try {
+        setIsFollowing(false);
+        const {data} = await api.post("/api/user/unfollow", {id: userId}, {
+          headers: {
+            Authorization: `Bearer ${await getToken()}`
+          }
+        })
+  
+        if(data.success)
+        {
+          toast.success(data.message)
+          dispatch(fetchConnections(await getToken()))
+        }
+        else
+        {
+          toast(data.message);
+          setIsFollowing(true);
+        }
+      } catch (error) {
+        toast.error(error.message);
+        setIsFollowing(true);
+      }
+    }
+
+  const handleConnectionRequest = async () => {
+    if(connectionStatus === "accepted") {
+      navigate(`/messages/${profileId}`);
+      return;
+    }
+
+    try {
+      setConnectionStatus("pending");
+      const {data} = await api.post("/api/user/connect", {id: profileId}, {
+        headers: { Authorization: `Bearer ${await getToken()}` }
+      });
+
+      if(data.success)
+      {
+        toast.success(data.message);
+      }
+      else 
+      {
+        toast.error(data.message);
+        setConnectionStatus(null);
+      }
+    } catch (err) {
+      toast.error(err.message);
+      setConnectionStatus(null);
+    }
+  };
 
   const fetchUser = async (profileId) => {
     const token = await getToken();
@@ -34,6 +130,7 @@ const Profile = () => {
       {
         setUser(data.profile);
         setPosts(data.posts);
+        setConnectionStatus(data.connectionStatus);
       }
       else
       {
@@ -47,17 +144,23 @@ const Profile = () => {
   useEffect(() => {
     if(profileId)
     {
-      fetchUser(profileId)
+      fetchUser(profileId);
+      fetchUserConnections(profileId);
     }
     else
     {
       fetchUser(currentUser._id);
+      fetchUserConnections(currentUser._id);
+    }
+
+    if (profileId && currentUser) {
+      setIsFollowing(currentUser.following.includes(profileId));
     }
   }, [profileId, currentUser])
 
   return user ? (
     <div className='relative h-full overflow-y-scroll bg-gray-50 p-6'>
-      <div className='max-w-3xl mx-auto'>
+      <div id="p1" className='max-w-3xl mx-auto'>
         
         {/* Profile Card */}
         <div className='bg-white rounded-2xl shadow overflow-hidden'>
@@ -71,12 +174,35 @@ const Profile = () => {
 
           {/* User Info */}
           <UserProfileInfo user={user} posts={posts} profileId={profileId} setShowEdit={setShowEdit} />
+
+          {
+            profileId && profileId !== currentUser._id && 
+            <div className="flex flex-col sm:flex-row justify-end items-center mb-6 sm:items-start gap-3 mt-4 px-4 sm:px-6">
+              {/* Follow / Unfollow */}
+              <button onClick={() => {isFollowing ? handleUnfollow(profileId) : handleFollow()}} className="w-full sm:w-auto py-2 px-6 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold rounded-md transition active:scale-95 flex justify-center items-center gap-2">
+                <UserPlus className="w-5 h-5"/>
+                {isFollowing ? "Following" : "Follow"}
+              </button>
+
+              {/* Connection Request / Message */}
+              <button onClick={handleConnectionRequest} disabled={connectionStatus === "pending"} className={`w-full sm:w-auto py-2 px-6 rounded-md transition active:scale-95 flex justify-center items-center gap-2 ${connectionStatus === "accepted" ? "border border-gray-300 text-gray-700 hover:bg-gray-100" : connectionStatus === "pending" ? "bg-gray-300 text-gray-600 cursor-not-allowed" : "border border-gray-300 text-gray-700 hover:bg-gray-100"}`}>
+                {
+                  connectionStatus === "accepted"
+                  ? <><MessageCircle className="w-5 h-5"/> Send Message </>
+                  : connectionStatus === "pending"
+                    ? <><Plus className="w-5 h-5"/> Pending </>
+                    : <><Plus className="w-5 h-5"/> Connect </>
+                }
+              </button>
+            </div>
+          }
+          
         </div>
 
         {/* Tabs */}
-        <div className="mt-6">
+        <div className="mt-6 mb-14">
           <div className='bg-white rounded-xl shadow p-1 flex max-w-md mx-auto'>
-            {["Posts", "Media", "Likes"].map((tab) => (
+            {["Posts", "Media", "Connections"].map((tab) => (
                 <button onClick={() => setActiveTab(tab)} key={tab} className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer ${activeTab === tab ? "bg-indigo-600 text-white" : "text-gray-600 hover:text-gray-900"}`}>
                   {tab}
                 </button>
@@ -113,6 +239,35 @@ const Profile = () => {
                       }
                     </>
                   ))
+                }
+              </div>
+            )
+          }
+
+          {/* Connections */}
+          {
+            activeTab === "Connections" && (
+              <div className="mt-6 bg-white p-6 rounded-xl shadow">
+                <h2 className="text-lg font-semibold text-gray-800 mb-4">Connections</h2>
+
+                {
+                  userConnections.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                      {userConnections.map((connection) => (
+                        <div key={connection._id} onClick={() => navigate(`/profile/${connection._id}#p1`)} className="flex flex-col items-center p-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl shadow hover:shadow-md hover:-translate-y-1 transition cursor-pointer border border-indigo-100">
+                          <img src={connection.profile_picture || "/default-avatar.png"}alt={connection.full_name}className="w-14 h-14 rounded-full object-cover border border-purple-200 mb-2" />
+                          <p className="text-sm font-semibold text-gray-800 text-center truncate w-full">{connection.full_name}</p>
+                          {
+                            connection.username && (
+                              <p className="text-xs text-gray-500">@{connection.username}</p>
+                            )
+                          }
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-center mt-4">No connections yet 👥</p>
+                  )
                 }
               </div>
             )

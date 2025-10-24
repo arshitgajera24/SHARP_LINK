@@ -24,6 +24,15 @@ const messagesSlice = createSlice({
         addMessage: (state, action) => {
             state.messages = [...state.messages, action.payload];
         },
+        markMessageSeen: (state, action) => {
+            const { messageIds } = action.payload;
+            state.messages = state.messages.map(msg => {
+                if(messageIds.includes(msg._id)) {
+                    return { ...msg, seen: true };
+                }
+                return msg;
+            });
+        },
         resetMessages: (state) => {
             state.messages = [];
         },
@@ -38,5 +47,5 @@ const messagesSlice = createSlice({
     }
 })
 
-export const {sendMessages, addMessage, resetMessages} = messagesSlice.actions;
+export const {sendMessages, addMessage, markMessageSeen, resetMessages} = messagesSlice.actions;
 export default messagesSlice.reducer

@@ -1,10 +1,24 @@
 import React from 'react'
 import toast from 'react-hot-toast';
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom'
 
 const Notification = ({t, message}) => {
 
     const navigate = useNavigate();
+
+    const getNotificationText = (m) => {
+        if (!m) return "Sent a Media";
+
+        if (m.message_type === "post" && m.post_id && m.post_id.user) {
+            const username = m.post_id.user.username || m.post_id.user.full_name || "user";
+            return `Sent a post of @${username}`;
+        }
+
+        if (m.message_type === "image") return m.text ? m.text : "Sent an image";
+        if (m.message_type === "text" && m.text) return m.text;
+        return "Sent a Media";
+    }
 
   return (
     <div className='max-w-md w-full bg-white shadow-lg rounded-lg flex border border-gray-300 hover:scale-105 transition'>
@@ -13,7 +27,7 @@ const Notification = ({t, message}) => {
                 <img src={message.from_user_id.profile_picture} alt="Sender Image" className='h-10 w-10 rounded-full flex-shrink-0 mt-0.5' />
                 <div className='ml-3 flex-1'>
                     <p className="text-sm font-medium text-gray-900">{message.from_user_id.full_name}</p>
-                    <p className='text-sm text-gray-500'>{message.text.slice(0, 50)}</p>
+                    <p className='text-sm text-gray-500'>{getNotificationText(message)}</p>
                 </div>
             </div>
         </div>

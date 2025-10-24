@@ -225,15 +225,18 @@ export const sendConnectionRequest = async (req, res) => {
 export const getUserConnections = async (req, res) => {
     try {
         const {userId} = req.auth();
+        const profileId = req.body?.profileId || null;
+
+        const targetUserId = profileId || userId;
         
-        const user = await User.findById(userId).populate("connections followers following");
+        const user = await User.findById(targetUserId).populate("connections followers following");
 
         const connections = user.connections;
         const followers = user.followers;
         const following = user.following;
 
         const pendingConnections = (await Connection.find({ 
-            to_user_id: userId, 
+            to_user_id: targetUserId, 
             status: "pending" 
         }).populate("from_user_id")).map((connection) => connection.from_user_id);
 
@@ -271,17 +274,65 @@ export const acceptConnectionRequest = async (req, res) => {
     }
 }
 
+//* Reject Connection Request
+export const rejectConnectionRequest = async (req, res) => {
+    try {
+        const {userId} = req.auth();
+        const {id} = req.body;
+
+        const deletedConnection = await Connection.findOneAndDelete({ from_user_id: id, to_user_id: userId });
+        if (!deletedConnection) return res.json({ success: false, message: "Connection not found" });
+        
+        res.json({success: true, message: "Connection Rejected" });
+    } catch (error) {
+        console.log(error);
+        res.json({success: false, message: error.message});
+    }
+}
+
+//* Remove From Connections
+export const removeFromConnections = async (req, res) => {
+    try {
+        const {userId} = req.auth();
+        const {id} = req.body;
+
+        const deletedConnection = await Connection.findOneAndDelete({ from_user_id: id, to_user_id: userId });
+        if (!deletedConnection) return res.json({ success: false, message: "Connection not found" });
+
+        await User.findByIdAndUpdate(userId, {
+            $pull: { connections: id }
+        });
+
+        await User.findByIdAndUpdate(id, {
+            $pull: { connections: userId }
+        });
+        
+        res.json({success: true, message: "Connection Removed Successfully" });
+    } catch (error) {
+        console.log(error);
+        res.json({success: false, message: error.message});
+    }
+}
+
 //* Get User Profiles
 export const getUserProfiles = async (req, res) => {
     try {
+        const {userId} = req.auth();
         const {profileId} = req.body;
 
         const profile = await User.findById(profileId);
         if(!profile) return res.json({success: false, message: "Profile not Found"});
 
+        const connection = await Connection.findOne({
+            $or: [
+                { from_user_id: userId, to_user_id: profileId },
+                { from_user_id: profileId, to_user_id: userId }
+            ]
+        });
+
         const posts = await Post.find({user: profileId}).populate("user");
 
-        res.json({success: true, profile, posts });
+        res.json({success: true, profile, posts, connectionStatus: connection ? connection.status : null });
     } catch (error) {
         console.log(error);
         res.json({success: false, message: error.message});

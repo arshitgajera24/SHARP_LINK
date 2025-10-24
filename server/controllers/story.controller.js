@@ -73,3 +73,50 @@ export const getUserStories = async (req, res) => {
         res.json({success: false, message: error.message});
     }
 }
+
+//* Mark Story as Viewed
+export const viewStory = async (req, res) => {
+    try {
+        const { userId } = req.auth();
+        const { storyId } = req.params;
+
+        const story = await Story.findById(storyId);
+        if (!story) return res.json({ success: false, message: "Story not found" });
+
+        if (story.user.toString() === userId) {
+            return res.json({ success: false });
+        }
+
+        const alreadyViewed = story.view_count.some(
+            (view) => view.user.toString() === userId
+        );
+
+        if (!alreadyViewed) {
+            story.view_count.push({ user: userId, viewedAt: new Date() });
+            await story.save();
+        }
+
+        res.json({ success: true, message: "Story viewed successfully" });
+    } catch (error) {
+        console.log(error);
+        res.json({success: false, message: error.message});
+    }
+}
+
+//* Get Story Viewers
+export const getStoryViewers = async (req, res) => {
+    try {
+        const { storyId } = req.params;
+
+        const story = await Story.findById(storyId).populate("view_count.user");
+
+        if (!story) {
+            return res.json({ success: false, message: "Story not found" });
+        }        
+
+        res.json({ success: true, viewers: story.view_count });
+    } catch (error) {
+        console.log(error);
+        res.json({success: false, message: error.message});
+    }
+}

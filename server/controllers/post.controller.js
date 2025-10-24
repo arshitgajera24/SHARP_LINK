@@ -93,3 +93,23 @@ export const likePost = async (req, res) => {
         res.json({success: false, message: error.message});
     }
 }
+
+//* Get Single Post by ID
+export const getPostById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const post = await Post.findById(id).populate('user', 'full_name username profile_picture').lean();        
+
+        if (!post) {
+            return res.json({ success: false, message: 'Post not found' });
+        }
+
+        // const comments = await Comment.find({ post: id }).populate('user', 'full_name username profile_picture').sort({createdAt: -1});
+
+        res.json({ success: true, post });
+    } catch (error) {
+        console.log(error);
+        res.json({success: false, message: error.message});
+    }
+}

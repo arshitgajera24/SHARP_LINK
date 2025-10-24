@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
 import { fetchUsers } from '../features/user/userSlice.js';
 import debounce from "lodash/debounce"
+import { useNavigate } from 'react-router-dom';
 
 const Discover = () => {
 
@@ -67,7 +68,7 @@ const Discover = () => {
         </div>
 
         {/* Search Bar */}
-        <div className='mb-8 shadow-mb border border-slate-200/60 bg-white/80'>
+        <div className='mb-8 shadow border border-slate-200/60 bg-white/80'>
           <div className='p-6'>
             <div className='relative'>
               <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5' />
