@@ -22,10 +22,10 @@ const Feed = () => {
           Authorization: `Bearer ${await getToken()}`,
         }
       })
-
+      
       if(data.success)
       {
-        setFeeds(data.posts)
+        setFeeds(data.posts || [])
       }
       else
       {
@@ -42,15 +42,19 @@ const Feed = () => {
     fetchFeeds();
   }, [])
 
+  const handleDeleteFromFeed = (postId) => {
+    setFeeds((prev) => prev.filter((post) => post._id !== postId));
+  };
+
   return !loading ? (
-    <div className='h-full overflow-y-scroll no-scrollbar py-2 xl:pr-5 flex items-start justify-center xl:gap-8'>
+    <div className='h-full overflow-y-scroll no-scrollbar py-2 mb-12 xl:mb-0 xl:pr-5 flex items-start justify-center xl:gap-8'>
       {/* Stories & Post */}
       <div>
         <Storiesbar />
         <div className='p-4 space-y-6'>
           {
             feeds.map((post) => (
-              <PostCard key={post._id} post={post} />
+              <PostCard key={post._id} post={post} onDelete={handleDeleteFromFeed} />
             ))
           }
         </div>

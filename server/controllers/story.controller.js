@@ -3,6 +3,7 @@ import imagekit from "../config/imagekit.js";
 import Story from "../models/Story.js";
 import User from "../models/User.js";
 import { inngest } from "../inngest/index.js";
+import { decryptText, encryptText } from "./message.controller.js";
 
 //* Add User Story
 export const addUserStory = async (req, res) => {
@@ -35,8 +36,8 @@ export const addUserStory = async (req, res) => {
         //! Create Story
         const story = await Story.create({
             user: userId,
-            content,
-            media_url,
+            content: encryptText(content),
+            media_url: encryptText(media_url),
             media_type,
             background_color,
         })
@@ -67,7 +68,13 @@ export const getUserStories = async (req, res) => {
             user: {$in: userIds}
         }).populate("user").sort({createdAt: -1});
 
-        res.json({success: true, stories });
+        const decryptedStories = stories.map(story => ({
+            ...story._doc,
+            content: decryptText(story.content),
+            media_url: decryptText(story.media_url)
+        }));
+
+        res.json({ success: true, stories: decryptedStories });
     } catch (error) {
         console.log(error);
         res.json({success: false, message: error.message});
@@ -115,6 +122,26 @@ export const getStoryViewers = async (req, res) => {
         }        
 
         res.json({ success: true, viewers: story.view_count });
+    } catch (error) {
+        console.log(error);
+        res.json({success: false, message: error.message});
+    }
+}
+
+//* Delete Story
+export const deleteStory = async (req, res) => {
+    try {
+        const { userId } = req.auth();
+        const { storyId } = req.params;
+
+        const story = await Story.findById(storyId);
+        if (!story) return res.json({ success: false, message: "Story not found" });
+
+        if (story.user.toString() !== userId) return res.json({ success: false, message: "Not authorized" });
+
+        await story.deleteOne();
+
+        res.json({ success: true, message: "Story Deleted Successfully", deletedStoryId: storyId });
     } catch (error) {
         console.log(error);
         res.json({success: false, message: error.message});

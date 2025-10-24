@@ -10,29 +10,29 @@ const MobileBottomNav = () => {
         <div className="max-w-4xl mx-auto px-2">
             <div className="flex items-center justify-between py-2">
             {/* Home */}
-            <button onClick={() => navigate("/")} className="flex-1 flex items-center justify-center">
+            <button onClick={() => navigate("/")} className="flex-1 flex items-center justify-center cursor-pointer">
                 <Home className="w-6 h-6 text-gray-700" />
             </button>
 
             {/* Discover */}
-            <button onClick={() => navigate("/discover")} className="flex-1 flex items-center justify-center">
+            <button onClick={() => navigate("/discover")} className="flex-1 flex items-center justify-center cursor-pointer">
                 <Search className="w-6 h-6 text-gray-700" />
             </button>
 
             {/* Create Post */}
-            <div className="flex-1 flex items-center justify-center -mt-4">
+            <div className="flex-1 flex items-center justify-center -mt-4 cursor-pointer">
                 <Link to="/create-post" className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg transform active:scale-95" style={{ background: "linear-gradient(90deg,#6366f1,#a78bfa)" }}>
                     <Plus className="w-5 h-5 text-white" />
                 </Link>
             </div>
 
             {/* Connections */}
-            <button onClick={() => navigate("/connections")} className="flex-1 flex items-center justify-center">
+            <button onClick={() => navigate("/connections")} className="flex-1 flex items-center justify-center cursor-pointer">
                 <Users className="w-6 h-6 text-gray-700" />
             </button>
 
             {/* Profile */}
-            <button onClick={() => navigate("/profile")} className="flex-1 flex items-center justify-center">
+            <button onClick={() => navigate("/profile")} className="flex-1 flex items-center justify-center cursor-pointer">
                 <User className="w-6 h-6 text-gray-700" />
             </button>
             </div>

@@ -1,4 +1,5 @@
 import Comment from "../models/Comments.js";
+import { decryptText, encryptText } from "./message.controller.js";
 
 
 //* Add Comment
@@ -9,12 +10,17 @@ export const addComment = async (req, res) => {
         const comment = await Comment.create({
             post: postId,
             user: userId,
-            text,
+            text: encryptText(text),
         })
 
         const populatedComment = await Comment.findById(comment._id).populate("user");
 
-        res.json({success: true, comment: populatedComment});
+        const decryptedComment = {
+            ...populatedComment._doc,
+            text: decryptText(populatedComment.text)
+        };
+
+        res.json({success: true, comment: decryptedComment});
     } catch (error) {
         console.log(error);
         res.json({success: false, message: error.message});
@@ -28,7 +34,12 @@ export const getAllComments = async (req, res) => {
 
         const comments = await Comment.find({ post: postId }).populate("user").sort({ createdAt: -1 });
 
-        res.json({success: true, comments});
+        const decryptedComments = comments.map(c => ({
+            ...c._doc,
+            text: decryptText(c.text.toString())
+        }));
+
+        res.json({ success: true, comments: decryptedComments });
     } catch (error) {
         console.log(error);
         res.json({success: false, message: error.message});

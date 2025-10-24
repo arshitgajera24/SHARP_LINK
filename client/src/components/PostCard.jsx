@@ -1,4 +1,4 @@
-import { BadgeCheck, Heart, MessageCircle, Send, SendHorizonal, X } from 'lucide-react'
+import { BadgeCheck, EllipsisVertical, Heart, MessageCircle, Send, SendHorizonal, Trash2, X } from 'lucide-react'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { dummyUserData } from '../assets/assets';
@@ -9,7 +9,7 @@ import api from '../api/axios.js';
 import toast from 'react-hot-toast';
 import { addMessage } from '../features/messages/messagesSlice.js';
 
-const PostCard = ({post}) => {
+const PostCard = ({post, onDelete}) => {
 
     const [likes, setLikes] = useState(post.likes_count);
     const [showHeart, setShowHeart] = useState(false);
@@ -21,6 +21,9 @@ const PostCard = ({post}) => {
 
     const [connectionsList, setConnectionsList] = useState([]);
     const [selectedUsers, setSelectedUsers] = useState([]);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [postToDelete, setPostToDelete] = useState(null);
 
     const { getToken } = useAuth();
     const navigate = useNavigate();
@@ -147,7 +150,7 @@ const PostCard = ({post}) => {
                     {
                         to_user_id: id,
                         text: post.content || "",
-                        message_type: post.image_urls.length ? "post" : "text",
+                        message_type: "post",
                         media_url: post.image_urls[0] || "",
                         post_id: post._id,
                     },
@@ -174,7 +177,7 @@ const PostCard = ({post}) => {
         } catch (error) {
             toast.error(error.message);
         }
-    };    
+    };
 
     useEffect(() => {
         if (currentUser) {
@@ -187,16 +190,82 @@ const PostCard = ({post}) => {
     <div className='bg-white rounded-xl shadow p-4 space-y-4 w-full max-w-2xl'>
         
         {/* User Info */}
-        <div onClick={() => navigate(`/profile/${post.user._id}`)} className='inline-flex items-center gap-3 cursor-pointer'>
-            <img src={post.user.profile_picture} alt="Profile Picture" className='w-10 h-10 rounded-full shadow' />
-            <div>
-                <div className='flex items-center space-x-1'>
-                    <span>{post.user.full_name}</span>
-                    <BadgeCheck className='w-4 h-4 text-blue-500' />
+        <div className="flex items-center justify-between">
+            <div onClick={() => navigate(`/profile/${post.user._id}`)} className='flex items-center gap-3 cursor-pointer'>
+                <img src={post.user.profile_picture} alt="Profile Picture" className='w-10 h-10 rounded-full shadow' />
+                <div>
+                    <div className='flex items-center space-x-1'>
+                        <span>{post.user.full_name}</span>
+                        <BadgeCheck className='w-4 h-4 text-blue-500' />
+                    </div>
+                    <div className='text-gray-500 text-sm'>@{post.user.username} • {moment(post.createdAt).fromNow()}</div>
                 </div>
-                <div className='text-gray-500 text-sm'>@{post.user.username} • {moment(post.createdAt).fromNow()}</div>
             </div>
+            {
+                post.user._id === currentUser._id && (
+                    <div className="relative">
+                        <button onClick={() => setMenuOpen(!menuOpen)} className='p-2 rounded-full hover:bg-gray-100 transition cursor-pointer'>
+                            <EllipsisVertical className="w-5 h-5 text-gray-600"/>
+                        </button>
+                        {
+                            menuOpen && (
+                                <div className="absolute right-0 mt-2 w-35 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                                    <button onClick={() => { setPostToDelete(post._id); setShowDeleteConfirm(true); setMenuOpen(false); }} className='flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50 cursor-pointer'>
+                                        <Trash2 className="w-4 h-4" /> Delete Post
+                                    </button>
+                                </div>
+                            )
+                        }
+                        
+                    </div>
+                )
+            }
         </div>
+
+        {/* Delete Post Confirm Pop-up */}
+        {
+            showDeleteConfirm && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/50" onClick={() => setShowDeleteConfirm(false)} ></div>
+                <div className={`relative bg-white shadow-xl rounded-lg p-6 w-80 z-10`}>
+                    <p className="text-gray-800 font-semibold text-sm text-center mb-4">
+                        Are you Sure You Want to Delete This Post?
+                    </p>
+                    <div className="flex justify-center gap-3">
+                        <button onClick={async () => {
+                            setShowDeleteConfirm(false);
+                            const loadingToast = toast.loading("Deleting...");
+                            try {
+                                const token = await getToken();
+                                const { data } = await api.delete(`/api/post/delete/${postToDelete}`, {
+                                    headers: { 
+                                        Authorization: `Bearer ${token}` 
+                                    }
+                                });
+
+                                if(data.success)
+                                {
+                                    toast.success(data.message, { id: loadingToast });
+                                    onDelete?.(postToDelete);
+                                }
+                                else
+                                {
+                                    toast.error(data.message, { id: loadingToast });
+                                }
+                            } catch (error) {
+                                toast.error(error.message, { id: loadingToast });
+                            }
+                        }} className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded-md text-sm cursor-pointer">
+                            Yes
+                        </button>
+                        <button onClick={() => setShowDeleteConfirm(false)} className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-1 rounded-md text-sm cursor-pointer" >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+                </div>
+            )
+        }
 
         {/* Content */}
         {

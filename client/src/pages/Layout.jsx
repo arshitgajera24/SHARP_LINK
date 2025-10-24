@@ -33,7 +33,7 @@ const Layout = () => {
 
           <div className="flex items-center gap-2">
             {/* messages icon only */}
-            <button className="p-1" onClick={() => navigate("/messages")}>
+            <button className="p-1 cursor-pointer" onClick={() => navigate("/messages")}>
               <MessageCircle className='w-6 h-6 text-gray-700' />
             </button>
             {
@@ -46,7 +46,7 @@ const Layout = () => {
         </header>
 
         {/* CONTENT */}
-        <main className='flex-1 flex flex-col xl:overflow-y-auto overflow-y-clip'>
+        <main className='flex-1 flex flex-col xl:overflow-y-auto md:overflow-y-auto'>
           <Outlet />
         </main>
 

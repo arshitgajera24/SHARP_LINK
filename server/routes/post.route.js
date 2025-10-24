@@ -9,5 +9,6 @@ postRouter.route("/add").post(upload.array("images", 4), protect, postController
 postRouter.route("/feed").get(protect, postControllers.getFeedPosts);
 postRouter.route("/like").post(protect, postControllers.likePost);
 postRouter.route("/:id").get(protect, postControllers.getPostById);
+postRouter.route("/delete/:postId").delete(protect, postControllers.deletePost);
 
 export default postRouter;

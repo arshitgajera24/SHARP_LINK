@@ -2,6 +2,7 @@ import fs from "fs";
 import imagekit from "../config/imagekit.js";
 import Post from "../models/Post.js";
 import User from "../models/User.js";
+import { decryptText, encryptText } from "./message.controller.js";
 
 //* Add Post
 export const addPost = async (req, res) => {
@@ -39,7 +40,7 @@ export const addPost = async (req, res) => {
         await Post.create({
             user: userId,
             content,
-            image_urls,
+            image_urls: image_urls.map(url => encryptText(url)),
             post_type
         });
 
@@ -58,10 +59,15 @@ export const getFeedPosts = async (req, res) => {
         const user = await User.findById(userId);
 
         //! User Connections & Followings
-        const userIds = [userId, ...user.connections, ...user.following];
+        const userIds = [userId, ...user.connections || [], ...user.following || []];
         const posts = await Post.find({user: { $in: userIds }}).populate("user").sort({createdAt: -1});
 
-        res.json({success: true, posts});
+        const decryptedPosts = posts.map(post => ({
+            ...post._doc,
+            image_urls: (post.image_urls || []).map(url => decryptText(url.toString())),
+        }));
+
+        res.json({success: true, posts: decryptedPosts});
     } catch (error) {
         console.log(error);
         res.json({success: false, message: error.message});
@@ -105,9 +111,32 @@ export const getPostById = async (req, res) => {
             return res.json({ success: false, message: 'Post not found' });
         }
 
-        // const comments = await Comment.find({ post: id }).populate('user', 'full_name username profile_picture').sort({createdAt: -1});
+        const decryptedPost = {
+            ...post,
+            image_urls: post.image_urls.map(url => decryptText(url.toString())),
+        };
 
-        res.json({ success: true, post });
+        res.json({ success: true, post: decryptedPost });
+    } catch (error) {
+        console.log(error);
+        res.json({success: false, message: error.message});
+    }
+}
+
+//* Delete post
+export const deletePost = async (req, res) => {
+    try {
+        const { userId } = req.auth();
+        const { postId } = req.params;
+
+        const post = await Post.findById(postId);
+        if (!post) return res.json({ success: false, message: "Post not found" });
+
+        if (post.user.toString() !== userId) return res.json({ success: false, message: "Not authorized" });
+
+        await post.deleteOne();
+
+        res.json({ success: true, message: "Post Deleted Successfully", deletedPostId: postId });
     } catch (error) {
         console.log(error);
         res.json({success: false, message: error.message});

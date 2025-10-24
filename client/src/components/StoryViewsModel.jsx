@@ -37,9 +37,9 @@ const StoryViewsModel = ({ storyId, onClose }) => {
     }, [storyId]);
 
     return (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur z-[999] flex items-center justify-center">
+        <div onClick={(e) => e.stopPropagation()} className="fixed inset-0 bg-black/70 backdrop-blur z-[999] flex items-center justify-center">
             <div className="bg-white rounded-lg w-full max-w-sm max-h-[80vh] overflow-y-auto p-4 relative">
-                <button onClick={onClose} className="absolute top-3 right-3">
+                <button onClick={onClose} className="absolute top-3 right-3 cursor-pointer">
                     <X />
                 </button>
                 <h2 className="text-lg font-bold mb-4">Story Views</h2>

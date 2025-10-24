@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { dummyMessagesData, dummyUserData } from '../assets/assets'
-import { ArrowLeft, Image, Send, SendHorizonal } from 'lucide-react';
+import { ArrowLeft, Copy, EllipsisVertical, Image, Send, SendHorizonal, Trash2 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
@@ -14,6 +14,9 @@ const Chatbox = ({ selectedUserId }) => {
   const [image, setImage] = useState(null);
   const [user, setUser] = useState(null);
   const lastMessageRef = useRef(null);
+  const [clickedMessageId, setClickedMessageId] = useState(null);
+  const [initialLoad, setInitialLoad] = useState(true);
+
   const {messages} = useSelector((state) => state.messages);
   const userId = !selectedUserId ? useParams()?.userId : selectedUserId;
   const {getToken} = useAuth();
@@ -64,6 +67,31 @@ const Chatbox = ({ selectedUserId }) => {
     }
   }
 
+  const handleDeleteMessage = async (messageId) => {
+    const toastId = toast.loading("Deleting...");
+    try {
+        const token = await getToken();
+        const { data } = await api.delete(`/api/message/delete/${messageId}`, {
+            headers: { 
+              Authorization: `Bearer ${token}` 
+            }
+        });
+    
+        if(data.success)
+        {
+            toast.success(data.message, { id: toastId });
+            fetchUserMessages();
+            setClickedMessageId(null);
+        }
+        else
+        {
+            toast.error(data.message, { id: toastId });
+        }
+    } catch (error) {
+        toast.error(error.message, { id: toastId });
+    }
+  }
+
   useEffect(() => {
     if(connections.length > 0)
     {
@@ -74,30 +102,40 @@ const Chatbox = ({ selectedUserId }) => {
 
   useEffect(() => {
     fetchUserMessages();
+    const interval = setInterval(() => {
+      fetchUserMessages();
+    }, 1000);
 
     return () => {
-      dispatch(resetMessages())
+      dispatch(resetMessages());
+      clearInterval(interval);
     }
-  }, [userId])
+  }, [userId]);
+
+  const isUserNearBottom = () => {
+    const chatContainer = document.getElementById("chat-container");
+    if (!chatContainer) return true;
+    const threshold = 100;
+    return chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < threshold;
+  };
 
   useEffect(() => {
-    // Find the last message not seen by current user
     const sortedMessages = [...messages].sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt));
     const lastUnseenIndex = sortedMessages.findIndex(msg => !msg.seen && msg.from_user_id?._id !== currentUser._id);
+    const lastMessage = lastUnseenIndex !== -1
+      ? document.getElementById(`message-${sortedMessages[lastUnseenIndex]._id}`)
+      : document.getElementById(`message-${sortedMessages[sortedMessages.length-1]?._id}`);
 
-    if(lastUnseenIndex !== -1) {
-      // Scroll to last unseen message
-      lastMessageRef.current = document.getElementById(`message-${sortedMessages[lastUnseenIndex]._id}`);
-    } else if(sortedMessages.length > 0) {
-      // If all messages seen, scroll to last message
-      lastMessageRef.current = document.getElementById(`message-${sortedMessages[sortedMessages.length-1]._id}`);
+    if (!lastMessage) return;
+
+    if (initialLoad || isUserNearBottom()) {
+      lastMessage.scrollIntoView({ behavior: initialLoad ? "auto" : "smooth" });
+      if (initialLoad) setInitialLoad(false);
     }
-
-    lastMessageRef.current?.scrollIntoView({behavior: "auto"});
   }, [messages]);
 
   return user && (
-    <div className='flex flex-col flex-1 max-h-screen'>
+    <div className='flex flex-col flex-1 max-h-screen overflow-x-hidden'>
       <div onClick={() => navigate(`/profile/${userId}`)} className='flex items-center gap-2 p-2 md:px-10 bg-white border-b border-gray-300 sticky top-0 z-10 cursor-pointer'>
         <button onClick={(e) => {e.stopPropagation(); navigate("/messages");}}>
           <ArrowLeft className='w-6 h-6 hover:scale-110 active:scale-95 mr-2 cursor-pointer' />
@@ -109,19 +147,24 @@ const Chatbox = ({ selectedUserId }) => {
         </div>
       </div>
 
-      <div className='flex-1 overflow-y-auto p-5 md:px-10 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200'>
+      <div id="chat-container" className='flex-1 overflow-y-auto overflow-x-hidden p-5 md:px-10 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200'>
         <div className='space-y-4 max-w-4xl mx-auto'>
           {
             messages.toSorted((a,b) => new Date(a.createdAt) - new Date(b.createdAt)).map((message, index) => {
               const sentByCurrentUser = message.from_user_id === currentUser._id;
               
-              return <div key={index} id={`message-${message._id}`} className={`flex flex-col ${message.to_user_id !== user._id ? "items-start" : "items-end"}`}>
-                <div className={`p-2 text-sm max-w-sm bg-white text-slate-700 rounded-lg shadow ${message.to_user_id !== user._id ? "rounded-bl-none" : "rounded-br-none"}`}>
+              return <div key={index} id={`message-${message._id}`} className={`flex flex-col relative ${message.to_user_id !== user._id ? "items-start" : "items-end"}`}>
+                <div className={`p-2 text-sm max-w-xs bg-white text-slate-700 rounded-lg shadow ${message.to_user_id !== user._id ? "rounded-bl-none" : "rounded-br-none"}`}>
+                  
+                  {/* Image Message */}
                   {
                     message.message_type === "image" && <img src={message.media_url} alt="Chat Media" className='w-full max-w-sm rounded-lg mb-1' />
                   }
+
+                  {/* Post Message */}
                   {
-                    message.message_type === "post" && message.post_id && (
+                    message.message_type === "post" && (
+                      message.post_id ? (
                       <div onClick={() => navigate(`/post/${message.post_id._id}`)} className="cursor-pointer border rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-all max-w-sm">
                         {/* Post Header */}
                         {
@@ -152,11 +195,75 @@ const Chatbox = ({ selectedUserId }) => {
                           }
                         </div>
                       </div>
-                    )
+                    ) : (
+                      <div className="p-2 text-sm max-w-xs bg-gray-100 text-gray-500 rounded-lg shadow italic">
+                        Post not found
+                      </div>
+                    ))
                   }
+
+                  {/* Text Message */}
                   {
                     message.message_type === "text" && <p>{message.text}</p>
                   }
+
+                  {/* 3-dot menu button */}
+                  <div className="absolute top-1/2 transform -translate-y-1/2"
+                      style={{ 
+                        left: message.to_user_id !== user._id ? '-22px' : 'auto', 
+                        right: message.to_user_id === user._id ? '-22px' : 'auto',
+                      }}>
+                    
+                    {/* 3-dot button */}
+                    <button onClick={(e) => {
+                          e.stopPropagation();
+                          setClickedMessageId(prev => prev === message._id ? null : message._id);
+                        }} className="p-1 text-gray-400 hover:text-gray-700 cursor-pointer z-10" >
+                        <EllipsisVertical size={16} />
+                    </button>
+
+                    {/* menu */}
+                    {clickedMessageId === message._id && (
+                      <div className={`absolute top-0 ${message.to_user_id === user._id ? "right-full" : "left-full"} ml-2 bg-white border border-gray-200 shadow-lg rounded-lg flex flex-col w-24 z-50`} style={{top: "auto", bottom: "0"}}>
+                        <p className="px-3 py-2 text-xs text-gray-500 border-b border-gray-200">
+                          {(() => {
+                            const msgDate = new Date(message.createdAt);
+                            const today = new Date();
+
+                            const isToday = msgDate.getDate() === today.getDate() &&
+                                            msgDate.getMonth() === today.getMonth() &&
+                                            msgDate.getFullYear() === today.getFullYear();
+
+                            const time = msgDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+
+                            if (isToday) {
+                              return time;
+                            } else {
+                              const date = `${String(msgDate.getDate()).padStart(2, '0')}/${String(msgDate.getMonth() + 1).padStart(2, '0')}/${String(msgDate.getFullYear()).slice(2)}`;
+                              return `${date} ${time}`;
+                            }
+                          })()}
+                        </p>
+                        <button className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer border-b border-gray-200"
+                            onClick={() => {
+                                let content = "";
+                                if(message.message_type === "text") content = message.text;
+                                else if(message.message_type === "image") content = message.media_url;
+                                else if(message.message_type === "post") content = `${import.meta.env.VITE_FRONTEND_URL}/post/${message.post_id?._id}`;
+                                navigator.clipboard.writeText(content)
+                                  .then(() => toast.success("Copied to clipboard"))
+                                  .catch(() => toast.error("Failed to copy"));
+                                setClickedMessageId(null);
+                            }}>
+                          <Copy className='w-4 h-4' />Copy
+                        </button>
+                        {message.to_user_id === user._id && (<button onClick={() => handleDeleteMessage(message._id)} className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-gray-100 cursor-pointer rounded-b-md">
+                          <Trash2 className='w-4 h-4' />Delete
+                        </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 {
                   sentByCurrentUser && message.seen && (

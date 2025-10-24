@@ -63,15 +63,29 @@ const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
     };
 
     const getPreviewText = (m) => {
-        if (!m) return "Media";
+        if (!m) return "Message is not Available";
 
-        if (m.post_id && m.post_id.user && m.message_type === "post") {
-            const username = m.post_id.user.username || m.post_id.user.full_name || "user";
-            return m.from_user_id._id === user.id ? `You sent a post of @${username}` : `Sent a post of @${username}`;
+        // Post message
+        if (m.message_type === "post") {
+            if (!m.post_id) return "Post not Found";
+            if (m.post_id.user) {
+                const username = m.post_id.user.username || m.post_id.user.full_name || "user";
+                return m.from_user_id._id === user.id 
+                    ? `You sent a post of @${username}` 
+                    : `Sent a post of @${username}`;
+            }
+            return "Post Details are Unavailable";
         }
-        if (m.message_type === "image") return m.text ? m.text : "Sent an image";
-        if (m.message_type === "text" && m.text) return m.text;
-        return "Media";
+
+        if (m.message_type === "image") {
+            return m.text ? m.text : "Sent an image";
+        }
+
+        if (m.message_type === "text") {
+            return m.text ? m.text : "No text message";
+        }
+
+        return "Message is not Available";
     };
 
     useEffect(() => {
@@ -88,7 +102,7 @@ const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
         <h3 className='font-semibold text-slate-8 mb-4'>Recent Messages</h3>
         <div className='flex flex-col max-h-56 overflow-y-scroll no-scrollbar cursor-pointer'>
             {
-                messages.map((message, index) => {
+                messages.length > 0 ? (messages.map((message, index) => {
                     const otherUser = message.from_user_id._id === user.id ? message.to_user_id : message.from_user_id;
                     return <div onClick={async () => {await markConversationAsSeen(otherUser._id); navigate(`/messages/${otherUser._id}`);}} key={index} className='flex items-start gap-2 py-2 hover:bg-slate-100'>
                         <img src={otherUser.profile_picture} alt="Profile Picture" className='w-8 h-8 rounded-full' />
@@ -105,16 +119,18 @@ const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
                             </div>
                         </div>
                     </div>
-                })
+                })) : (
+                    <p className="font-light text-center pt-2">No Recent Chats Available</p>
+                )
             }
         </div>
     </div>
   ) : (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-full">
         <h3 className="p-3 font-semibold border-b border-gray-200 sticky top-0 bg-white z-10">Recent Chats</h3>
         <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 max-h-screen">
         {
-            messages.map((msg) => {
+            messages.length > 0 ? (messages.map((msg) => {
                 const otherUser = msg.from_user_id._id === user.id ? msg.to_user_id : msg.from_user_id;
                 return <div key={otherUser._id} onClick={async () => {await markConversationAsSeen(otherUser._id); onSelectUser(otherUser._id)}} className={`flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-100 transition ${selectedUserId === otherUser._id ? "bg-gray-200" : ""}`}>
                     <img src={otherUser.profile_picture} className="w-12 h-12 rounded-full" />
@@ -132,7 +148,9 @@ const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
                         </div>
                     </div>
                 </div>
-            })
+            })) : (
+                <p className="font-light text-center pt-2">No Recent Chats Available</p>
+            )
         }
         </div>
     </div>

@@ -9,5 +9,6 @@ storyRouter.route("/create").post(upload.single("media"), protect, storyControll
 storyRouter.route("/get").get(protect, storyControllers.getUserStories);
 storyRouter.route("/view/:storyId").post(protect, storyControllers.viewStory);
 storyRouter.route("/viewers/:storyId").get(protect, storyControllers.getStoryViewers);
+storyRouter.route("/delete/:storyId").delete(protect, storyControllers.deleteStory);
 
 export default storyRouter;

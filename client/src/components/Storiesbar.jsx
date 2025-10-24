@@ -14,7 +14,6 @@ const Storiesbar = () => {
     const [stories, setStories] = useState([]);
     const [showModel, setShowModel] = useState(false);
     const [viewStory, setViewStory] = useState(null);
-    const [showViewsModal, setShowViewsModal] = useState(false);
     const [selectedStoryId, setSelectedStoryId] = useState(null);
 
     const fetchStories = async () => {
@@ -61,6 +60,10 @@ const Storiesbar = () => {
         fetchStories();
     }, [])
 
+    useEffect(() => {
+        fetchStories();
+    }, [selectedStoryId]);
+
   return (
     <div className="w-full sm:w-[calc(100vw-240px)] lg:max-w-2xl mx-auto overflow-x-auto no-scrollbar px-4 py-2">
         <div className="flex items-center gap-4">
@@ -82,18 +85,19 @@ const Storiesbar = () => {
 
                     const totalStories = story.stories.length;
                     const angle = 360 / totalStories;
+                    const gap = totalStories === 1 ? 0 : 2;
 
                     const gradientSegments = story.stories.map((_, i) => {
-                        const start = i * angle;
-                        const end = (i + 1) * angle;
-                        const colors = ['#5f27cd', '#a29bfe', '#6c5ce7', '#00b894', '#fd79a8'];
+                        const start = i * angle + gap;
+                        const end = (i + 1) * angle - gap;
+                        const colors = ['#5e35b1', '#9c27b0', '#7e57c2', '#673ab7', '#8e24aa', '#d500f9'];
                         const color = colors[i % colors.length];
-                        return `${color} ${start}deg ${end}deg`;
+                        return `${color} ${start}deg ${end}deg, transparent ${end}deg ${(i + 1) * angle}deg`;
                     }).join(', ');
 
                     return (
                         <div key={index} onClick={() => {setSelectedStoryId(story.stories[0]._id); setViewStory(story.stories);}} className="flex flex-col items-center cursor-pointer group">
-                            <div className="relative size-16 sm:size-18 md:size-20 rounded-full p-[2px]" style={{ background: `conic-gradient(${gradientSegments})` }}>
+                            <div className="relative size-16 sm:size-18 md:size-20 rounded-full p-[2px]" style={{ background: `conic-gradient(${gradientSegments})`, boxShadow: '0 0 6px rgba(0,0,0,0.3)' }}>
                                 <div className="bg-white rounded-full size-full flex items-center justify-center">
                                     <img src={story.user.profile_picture} alt={story.user.full_name} className="size-14 sm:size-16 md:size-18 rounded-full object-cover border-2 border-white transition-transform duration-300 group-hover:scale-105"/>
                                 </div>
@@ -113,15 +117,7 @@ const Storiesbar = () => {
         }
         {/* View Story Model */}
         {
-            viewStory && <StoryViewer viewStory={viewStory} setViewStory={setViewStory} setSelectedStoryId={setSelectedStoryId} onOpenViews={() => setShowViewsModal(true)} />
-        }
-        {
-            showViewsModal && (
-                <StoryViewsModel
-                    storyId={selectedStoryId}
-                    onClose={() => setShowViewsModal(false)}
-                />
-            )
+            viewStory && <StoryViewer viewStory={viewStory} setViewStory={setViewStory} setSelectedStoryId={setSelectedStoryId} />
         }
     </div>
   )

@@ -8,5 +8,6 @@ const messageRouter = Router();
 messageRouter.route("/:userId").get(messageControllers.sseController);
 messageRouter.route("/send").post(upload.single("image"), protect, messageControllers.sendMessage);
 messageRouter.route("/get").post(protect, messageControllers.getChatMessages);
+messageRouter.route("/delete/:messageId").delete(protect, messageControllers.deleteMessage);
 
 export default messageRouter;

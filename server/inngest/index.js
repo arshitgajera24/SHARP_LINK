@@ -4,6 +4,7 @@ import Connection from "../models/Connection.js";
 import sendEmail from "../config/nodeMailer.js";
 import Story from "../models/Story.js";
 import Message from "../models/Message.js";
+import { decryptText, encryptText } from "../controllers/message.controller.js";
 
 export const inngest = new Inngest({ id: "sharp-link" });
 
@@ -23,12 +24,17 @@ const syncUserCreation = inngest.createFunction(
 
         const userData = {
             _id: id,
-            email: email_addresses[0].email_address,
-            full_name: first_name + " " + last_name,
-            profile_picture: image_url,
-            username
+            email: encryptText(email_addresses[0].email_address),
+            full_name: encryptText(first_name + " " + last_name),
+            profile_picture: encryptText(image_url || ""),
+            username: encryptText(username)
+        };
+        try {
+            await User.create(userData);
+            console.log("User created:", id);
+        } catch(err) {
+            console.error("Failed to create user:", err);
         }
-        await User.create(userData);
     }
 )
 
@@ -40,10 +46,10 @@ const syncUserUpdation = inngest.createFunction(
         const {id, first_name, last_name, email_addresses, image_url} = event.data;
 
         const updateUserData = {
-            email: email_addresses[0].email_address,
-            full_name: first_name + " " + last_name,
-            profile_picture: image_url,
-        }
+            email: encryptText(email_addresses[0].email_address),
+            full_name: encryptText(first_name + " " + last_name),
+            profile_picture: encryptText(image_url || "")
+        };
         await User.findByIdAndUpdate(id, updateUserData);
     }
 )
@@ -72,15 +78,15 @@ const sendNewConnectionRequestReminder = inngest.createFunction(
 
             const subject = `👋 New Connection Request from SHARP LINK`;
             const body = `<div style="font-family: Arial, sans-serif; padding: 20px;">
-                            <h2>Hi ${connection.to_user_id.full_name},</h2>
-                            <p>You have a New Connection Request from ${connection.from_user_id.full_name} - @${connection.from_user_id.username}</p>
+                            <h2>Hi ${decryptText(connection.to_user_id.full_name)},</h2>
+                            <p>You have a New Connection Request from ${decryptText(connection.from_user_id.full_name)} - @${decryptText(connection.from_user_id.username)}</p>
                             <p>Click <a href="${process.env.FRONTEND_URL}/connections" style="color: #10b981;">here</a> to Accept or Reject the Request</p>
                             <br/>
                             <p>Thanks,<br/>SHARP LINK - Stay Connected</p>
                         </div>`;
 
             await sendEmail({
-                to: connection.to_user_id.email,
+                to: decryptText(connection.to_user_id.email),
                 subject,
                 body
             })
@@ -98,15 +104,15 @@ const sendNewConnectionRequestReminder = inngest.createFunction(
 
             const subject = `👋 New Connection Request in SHARP LINK`;
             const body = `<div style="font-family: Arial, sans-serif; padding: 20px;">
-                            <h2>Hi ${connection.to_user_id.full_name},</h2>
-                            <p>You have a New Connection Request from ${connection.from_user_id.full_name} - @${connection.from_user_id.username}</p>
+                            <h2>Hi ${decryptText(connection.to_user_id.full_name)},</h2>
+                            <p>You have a New Connection Request from ${decryptText(connection.from_user_id.full_name)} - @${decryptText(connection.from_user_id.username)}</p>
                             <p>Click <a href="${process.env.FRONTEND_URL}/connections" style="color: #10b981;">here</a> to Accept or Reject the Request</p>
                             <br/>
                             <p>Thanks,<br/>SHARP LINK - Stay Connected</p>
                         </div>`;
 
             await sendEmail({
-                to: connection.to_user_id.email,
+                to: decryptText(connection.to_user_id.email),
                 subject,
                 body,
             })
@@ -150,7 +156,7 @@ const SendNotificationOfUnseenMessages = inngest.createFunction(
 
             const subject = `📬 You have ${unSeenCount[userId]} Unseen Messages`;
             const body = `<div style="font-family: Arial, sans-serif; padding: 20px;">
-                            <h2>Hi ${user.full_name},</h2>
+                            <h2>Hi ${decryptText(user.full_name)},</h2>
                             <p>You have ${unSeenCount[userId]} unseen messages</p>
                             <p>Click <a href="${process.env.FRONTEND_URL}/messages" style="color: #10b981;">here</a> to view them</p>
                             <br/>
@@ -158,7 +164,7 @@ const SendNotificationOfUnseenMessages = inngest.createFunction(
                         </div>`;
             
                         await sendEmail({
-                            to: user.email,
+                            to: decryptText(user.email),
                             subject,
                             body,
                         })

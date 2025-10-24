@@ -16,16 +16,20 @@ import { fetchUsers } from './features/user/userSlice.js'
 import { fetchConnections } from './features/connections/connectionsSlice.js'
 import { addMessage, markMessageSeen } from './features/messages/messagesSlice.js'
 import Notification from './components/Notification.jsx'
-import ScrollToHash from './components/ScrollToHash.jsx'
+// import ScrollToHash from './components/ScrollToHash.jsx'
 import PostPage from './pages/PostPage.jsx'
 import api from './api/axios.js'
 import Loading from './components/Loading.jsx'
+
 
 const App = () => {
   const {user} = useUser();
   const {getToken, isLoaded} = useAuth();
   const {pathname} = useLocation();
   const pathNameRef = useRef(pathname);
+
+  // const { signOut } = useAuth();
+  // signOut();
 
   const dispatch = useDispatch();
 
@@ -95,7 +99,7 @@ const App = () => {
 
   return (
     <>
-      <ScrollToHash />
+      {/* <ScrollToHash /> */}
       <Toaster />
       <Routes>
         <Route path='/' element={!user ? <Login /> : <Layout />}>

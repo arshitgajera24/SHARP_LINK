@@ -22,11 +22,11 @@ const Profile = () => {
   const [posts, setPosts] = useState([]);
   const [activeTab, setActiveTab] = useState("Posts");
   const [showEdit, setShowEdit] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(user?.followers?.includes(currentUser) ? false : true);
   const [connectionStatus, setConnectionStatus] = useState(null);
   const [userConnections, setUserConnections] = useState([]);
   const dispatch = useDispatch();
-  const navigate = useNavigate();
+  const navigate = useNavigate();  
 
   const fetchUserConnections = async (profileId) => {
     try {
@@ -141,6 +141,10 @@ const Profile = () => {
     }
   }
 
+  const handleDeleteFromProfile = (postId) => {
+    setPosts((prev) => prev.filter((post) => post._id !== postId));
+  };
+
   useEffect(() => {
     if(profileId)
     {
@@ -159,7 +163,7 @@ const Profile = () => {
   }, [profileId, currentUser])
 
   return user ? (
-    <div className='relative h-full overflow-y-scroll bg-gray-50 p-6'>
+    <div className='relative h-full bg-gray-50 p-6 md:overflow-y-scroll'>
       <div id="p1" className='max-w-3xl mx-auto'>
         
         {/* Profile Card */}
@@ -215,7 +219,7 @@ const Profile = () => {
             && (
               <div className='mt-6 flex flex-col items-center gap-6'>
                 {
-                  posts.map((post) => (<PostCard key={post._id} post={post} />))
+                  posts.map((post) => (<PostCard key={post._id} post={post} onDelete={handleDeleteFromProfile} />))
                 }
               </div>
             )

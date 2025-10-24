@@ -77,7 +77,7 @@ const ProfileModel = ({setShowEdit}) => {
                             Cover Photo
                             <input hidden onChange={(e) => setEditForm({...editForm, cover_photo: e.target.files[0]})} type="file" id="cover_photo" accept="image/*" className='w-full p-3 border border-grey-200 rounded-lg'/>
                             <div className='group/cover relative'>
-                                <img src={editForm.cover_photo ? URL.createObjectURL(editForm.cover_photo) : user.cover_photo} alt="Cover Photo" className='w-80 h-40 rounded-lg bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 object-cover mt-2' />
+                                <img src={editForm.cover_photo ? URL.createObjectURL(editForm.cover_photo) : user.cover_photo} alt="Cover Photo" className='xl:w-100 w-full h-40 rounded-lg bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 object-cover mt-2' />
                                 <div className='absolute hidden group-hover/cover:flex top-0 left-0 right-0 bottom-0 bg-black/20 rounded-lg items-center justify-center'>
                                     <Pencil className='w-5 h-5 text-white' />
                                 </div>

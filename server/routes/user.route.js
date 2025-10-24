@@ -11,6 +11,7 @@ userRouter.route("/update").post(upload.fields([{name: "profile", maxCount: 1}, 
 userRouter.route("/discover").post(protect, userControllers.discoverUsers);
 userRouter.route("/follow").post(protect, userControllers.followUser);
 userRouter.route("/unfollow").post(protect, userControllers.unfollowUser);
+userRouter.route("/removeFollower").post(protect, userControllers.removeFromFollowers);
 
 userRouter.route("/connect").post(protect, userControllers.sendConnectionRequest);
 userRouter.route("/accept").post(protect, userControllers.acceptConnectionRequest);

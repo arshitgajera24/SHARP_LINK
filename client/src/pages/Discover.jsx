@@ -64,7 +64,7 @@ const Discover = () => {
         {/* Title */}
         <div className='mb-8'>
           <h1 className='text-3xl font-bold text-slate-900 mb-2'>Discover People</h1>
-          <p className='text-slate-600'>Connect with Amazing People and Grow Your Network</p>
+          <p className='hidden md:block text-slate-600'>Connect with Amazing People and Grow Your Network</p>
         </div>
 
         {/* Search Bar */}
@@ -72,7 +72,7 @@ const Discover = () => {
           <div className='p-6'>
             <div className='relative'>
               <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5' />
-              <input type="text" placeholder='Search by People Name, Username, Bio or Location...' onChange={handleChange} value={input} className='pl-10 sm:pl-12 py-2 w-full border border-gray-300 rounded-md max-sm:text-sm' />
+              <input type="text" placeholder='Name, Username, Bio or Location...' onChange={handleChange} value={input} className='pl-10 sm:pl-12 py-2 w-full border border-gray-300 rounded-md max-sm:text-sm' />
             </div>
           </div>
         </div>

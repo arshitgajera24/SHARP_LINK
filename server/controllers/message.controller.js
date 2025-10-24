@@ -1,6 +1,9 @@
 import fs from "fs"
 import imagekit from "../config/imagekit.js";
 import Message from "../models/Message.js";
+import crypto from "crypto"
+
+const IV_LENGTH=16
 
 //* Create an Empty Object to Store Server-Side Event Collections
 const connections = {};
@@ -29,6 +32,40 @@ export const sseController = (req, res) => {
         delete connections[userId];
         console.log("Client Disconnected : ", userId);
     })
+}
+
+export const encryptText = (text) => {
+    try {
+        if (!text) return text;
+        const iv = crypto.randomBytes(IV_LENGTH);
+        const cipher = crypto.createCipheriv("aes-256-cbc", Buffer.from(process.env.ENCRYPTION_KEY), iv);
+        let encrypted = cipher.update(text, "utf8", "hex");
+        encrypted += cipher.final("hex");
+        return iv.toString("hex") + ":" + encrypted;
+    } catch (error) {
+        console.log("Encryption error:", error.message);
+        return text;
+    }
+}
+
+export const decryptText = (encryptedText) => {
+    try {
+        if (typeof encryptedText !== "string" || !encryptedText.includes(":")) {
+            return encryptedText;
+        }
+
+        const [ivHex, encrypted] = encryptedText.split(":");
+        const iv = Buffer.from(ivHex, "hex");
+
+        const decipher = crypto.createDecipheriv("aes-256-cbc", Buffer.from(process.env.ENCRYPTION_KEY), iv );
+
+        let decrypted = decipher.update(encrypted, "hex", "utf8");
+        decrypted += decipher.final("utf8");
+        return decrypted;
+    } catch (error) {
+        console.log("Decryption error:", error.message);
+        return encryptedText;
+    }
 }
 
 //* Send Message
@@ -62,13 +99,19 @@ export const sendMessage = async (req, res) => {
         const message = await Message.create({
             from_user_id: userId,
             to_user_id,
-            text,
+            text: encryptText(text),
             message_type: final_type,
-            media_url: final_media_url,
+            media_url: final_media_url ? encryptText(final_media_url) : "",
             post_id,
         })
 
-        res.json({success: true, message});
+        const decryptedMessage = {
+            ...message._doc,
+            text: decryptText(message.text),
+            media_url: decryptText(message.media_url)
+        };
+
+        res.json({success: true, message: decryptedMessage});
 
         //! Send Message to to_user_id using SSE
         const messageWithUserData = await Message.findById(message._id).populate("from_user_id to_user_id").populate({ 
@@ -76,8 +119,13 @@ export const sendMessage = async (req, res) => {
             populate: { path: "user", select: "full_name username profile_picture" } 
         });
 
-        if(connections[to_user_id]) {
-            connections[to_user_id].write(`data: ${JSON.stringify({type:"newMessage", message: messageWithUserData})}\n\n`);
+        if (connections[to_user_id]) {
+            const decryptedForReceiver = {
+                ...messageWithUserData._doc,
+                text: decryptText(messageWithUserData.text),
+                media_url: decryptText(messageWithUserData.media_url)
+            };
+            connections[to_user_id].write(`data: ${JSON.stringify({ type: "newMessage", message: decryptedForReceiver })}\n\n`);
         }
 
     } catch (error) {
@@ -99,6 +147,12 @@ export const getChatMessages = async (req, res) => {
             ]
         }).populate({ path: "post_id", populate: { path: "user", select: "full_name username profile_picture" }}).sort({createdAt: -1});
 
+        const decryptedMessages = messages.map(msg => ({
+            ...msg._doc,
+            text: decryptText(msg.text),
+            media_url: decryptText(msg.media_url)
+        }));
+
         //! Mark Messages as Seen
         const messagesToMark = await Message.find({from_user_id: to_user_id, to_user_id: userId, seen: false});
         const messageIds = messagesToMark.map(msg => msg._id);
@@ -112,7 +166,7 @@ export const getChatMessages = async (req, res) => {
             }
         }
 
-        res.json({success: true, messages});
+        res.json({success: true, messages: decryptedMessages});
     } catch (error) {
         console.log(error);
         res.json({success: false, message: error.message});
@@ -131,7 +185,31 @@ export const getUserRecentMessages = async (req, res) => {
             ]
         }).populate("from_user_id to_user_id").populate({path: 'post_id', populate: { path: 'user', select: 'full_name username profile_picture' }}).sort({createdAt: -1});
         
-        res.json({success: true, messages});
+        const decryptedMessages = messages.map(msg => ({
+            ...msg._doc,
+            text: decryptText(msg.text),
+            media_url: decryptText(msg.media_url)
+        }));
+
+        res.json({success: true, messages: decryptedMessages});
+    } catch (error) {
+        console.log(error);
+        res.json({success: false, message: error.message});
+    }
+}
+
+//* Delete Message
+export const deleteMessage = async (req, res) => {
+    try {
+        const { userId } = req.auth();
+        const { messageId } = req.params;
+
+        const message = await Message.findById(messageId);
+        if (!message) return res.json({ success: false, message: "Message not found" });
+
+        await message.deleteOne();
+
+        res.json({ success: true, message: "Message Deleted", deletedMessageId: messageId });
     } catch (error) {
         console.log(error);
         res.json({success: false, message: error.message});

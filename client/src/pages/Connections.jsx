@@ -111,6 +111,28 @@ const Connections = () => {
     }
   }
 
+  const removeFollower = async (userId) => {
+    try {
+      const {data} = await api.post("/api/user/removeFollower", {id: userId}, {
+        headers: {
+          Authorization: `Bearer ${await getToken()}`
+        }
+      })
+
+      if(data.success)
+      {
+        toast.success(data.message)
+        dispatch(fetchConnections(await getToken()))
+      }
+      else
+      {
+        toast(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+
   useEffect(() => {
     getToken().then((token) => {
       dispatch(fetchConnections(token))
@@ -124,13 +146,13 @@ const Connections = () => {
         {/* Title */}
         <div className='mb-8'>
           <h1 className='text-3xl font-bold text-slate-900 mb-2'>Connections</h1>
-          <p className='text-slate-600'>Manage Your Network and Discover New Connections</p>
+          <p className='hidden md:block text-slate-600'>Manage Your Network and Discover New Connections</p>
         </div>
 
         {/* Tabs */}
-        <div className='inline-flex flex-wrap items-center border border-gray-200 rounded-full bg-white shadow-sm overflow-hidden px-2 sm:px-3 md:px-4 py-1 md:py-2 w-full sm:w-auto justify-center sm:justify-start'>
+        <div className='inline-flex flex-wrap items-center border border-gray-200 rounded-2xl md:rounded-full bg-white shadow-sm overflow-hidden px-2 sm:px-3 md:px-4 py-1 md:py-2 w-full sm:w-auto justify-center sm:justify-start'>
           {dataArray.map((tab, index) => (
-            <button onClick={() => setCurrTab(tab.label)} key={index} className={`flex items-center px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer rounded-full m-1 sm:m-1.5 md:m-2 sm:text-sm md:text-base ${currTab === tab.label ? "bg-indigo-600 text-white shadow-md scale-105" : "text-gray-500 hover:text-black hover:bg-gray-100"} rounded-full m-1`}>
+            <button onClick={() => setCurrTab(tab.label)} key={index} className={`flex items-center px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer rounded-2xl md:rounded-full m-1 sm:m-1.5 md:m-2 sm:text-sm md:text-base ${currTab === tab.label ? "bg-indigo-600 text-white shadow-md scale-105" : "text-gray-500 hover:text-black hover:bg-gray-100"} m-1`}>
               <tab.icon className={`w-4 h-4 ${currTab === tab.label ? "text-white" : "text-gray-500"}`} />
               <span className='ml-2'>{tab.label}</span>
               {
@@ -160,6 +182,12 @@ const Connections = () => {
                       currTab !== "Pending" && currTab !== "Connections" &&
                       <button onClick={(e) => {e.stopPropagation(); navigate(`/profile/${user._id}`)}} className='w-full p-2 text-sm rounded bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 active:scale-95 transition text-white cursor-pointer'>
                         View profile
+                      </button>
+                    }
+                    {
+                      currTab === "Followers" &&
+                      <button onClick={(e) => {e.stopPropagation(); removeFollower(user._id)}} className='w-full p-2 text-sm rounded bg-slate-100 hover:bg-slate-200 text-slate-800 active:scale-95 transition cursor-pointer'>
+                        Remove
                       </button>
                     }
                     {

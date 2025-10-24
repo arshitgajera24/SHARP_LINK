@@ -4,6 +4,7 @@ import Connection from "../models/Connection.js";
 import Post from "../models/Post.js";
 import User from "../models/User.js";
 import fs from "fs"
+import { decryptText, encryptText } from "./message.controller.js";
 
 //* Get User Data
 export const getUserData = async (req, res) => {
@@ -13,7 +14,18 @@ export const getUserData = async (req, res) => {
         const user = await User.findById(userId);
         if(!user) return res.json({success: false, message: "User not Found"});
 
-        res.json({success: true, user});
+        const decryptedUser = {
+            ...user._doc,
+            email: decryptText(user.email),
+            username: decryptText(user.username),
+            full_name: decryptText(user.full_name),
+            bio: decryptText(user.bio),
+            location: decryptText(user.location),
+            profile_picture: decryptText(user.profile_picture),
+            cover_photo: decryptText(user.cover_photo)
+        };
+
+        res.json({ success: true, user: decryptedUser });
     } catch (error) {
         console.log(error);
         res.json({success: false, message: error.message});
@@ -42,10 +54,10 @@ export const updateUserData = async (req, res) => {
         }
 
         const updatedData = {
-            username,
-            bio,
-            location,
-            full_name
+            username: encryptText(username),
+            bio: encryptText(bio),
+            location: encryptText(location),
+            full_name: encryptText(full_name)
         }
 
         const profile = req.files.profile && req.files.profile[0]
@@ -67,7 +79,7 @@ export const updateUserData = async (req, res) => {
                     { width: '512' },
                 ]
             })
-            updatedData.profile_picture = url;
+            updatedData.profile_picture = encryptText(url);
         }
 
         if(cover)
@@ -86,7 +98,7 @@ export const updateUserData = async (req, res) => {
                     { width: '1280' },
                 ]
             })
-            updatedData.cover_photo = url;
+            updatedData.cover_photo = encryptText(url);
         }
 
         const user = await User.findByIdAndUpdate(userId, updatedData, { new: true })
@@ -115,7 +127,16 @@ export const discoverUsers = async (req, res) => {
             }
         )
 
-        const filterUsers = allUsers.filter(user => user._id !== userId);
+        const filterUsers = allUsers.filter(user => user._id !== userId).map(user => ({
+            ...user._doc,
+            email: decryptText(user.email),
+            username: decryptText(user.username),
+            full_name: decryptText(user.full_name),
+            bio: decryptText(user.bio),
+            location: decryptText(user.location),
+            profile_picture: decryptText(user.profile_picture),
+            cover_photo: decryptText(user.cover_photo)
+        }));
 
         res.json({success: true, users: filterUsers});
     } catch (error) {
@@ -230,10 +251,13 @@ export const getUserConnections = async (req, res) => {
         const targetUserId = profileId || userId;
         
         const user = await User.findById(targetUserId).populate("connections followers following");
+        if (!user) {
+            return res.json({ success: false, message: "User not found" });
+        }
 
-        const connections = user.connections;
-        const followers = user.followers;
-        const following = user.following;
+        const connections = user.connections || [];
+        const followers = user.followers || [];
+        const following = user.following || [];
 
         const pendingConnections = (await Connection.find({ 
             to_user_id: targetUserId, 
@@ -323,6 +347,17 @@ export const getUserProfiles = async (req, res) => {
         const profile = await User.findById(profileId);
         if(!profile) return res.json({success: false, message: "Profile not Found"});
 
+        const decryptedProfile = {
+            ...profile._doc,
+            email: decryptText(profile.email),
+            username: decryptText(profile.username),
+            full_name: decryptText(profile.full_name),
+            bio: decryptText(profile.bio),
+            location: decryptText(profile.location),
+            profile_picture: decryptText(profile.profile_picture),
+            cover_photo: decryptText(profile.cover_photo)
+        };
+
         const connection = await Connection.findOne({
             $or: [
                 { from_user_id: userId, to_user_id: profileId },
@@ -332,7 +367,46 @@ export const getUserProfiles = async (req, res) => {
 
         const posts = await Post.find({user: profileId}).populate("user");
 
-        res.json({success: true, profile, posts, connectionStatus: connection ? connection.status : null });
+        const decryptedPosts = posts.map(post => ({
+            ...post._doc,
+            content: decryptText(post.content),
+            image_urls: post.image_urls.map(url => decryptText(url))
+        }));
+
+        res.json({success: true, profile: decryptedProfile, posts: decryptedPosts, connectionStatus: connection ? connection.status : null });
+    } catch (error) {
+        console.log(error);
+        res.json({success: false, message: error.message});
+    }
+}
+
+//* Remove From Followers
+export const removeFromFollowers = async (req, res) => {
+    try {
+        const {userId} = req.auth();
+        const {id} = req.body;
+
+        const user = await User.findById(userId);
+        if(!user.followers.includes(id))
+        {
+            return res.json({success: false, message: "Follower not Found"});
+        }
+
+        const otherUser = await User.findById(id);
+        if(!otherUser.following.includes(userId))
+        {
+            return res.json({success: false, message: "Following not Found"});
+        }
+
+        await User.findByIdAndUpdate(userId, {
+            $pull: { followers: id }
+        });
+
+        await User.findByIdAndUpdate(id, {
+            $pull: { following: userId }
+        });
+        
+        res.json({success: true, message: "Follower Removed Successfully" });
     } catch (error) {
         console.log(error);
         res.json({success: false, message: error.message});
