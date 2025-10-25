@@ -54,8 +54,8 @@ const CreatePost = () => {
         })(),
         {
           loading: "Uploading...", 
-          success: <p>Post Uploaded Successfully</p>, 
-          error: <p>Post Uploading Failed</p>
+          success: <p>✅ Post Uploaded Successfully</p>, 
+          error: <p>❌ Post Uploading Failed</p>
         }
       )
 

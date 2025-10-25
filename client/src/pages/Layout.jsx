@@ -1,26 +1,64 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Menu, X, MessageCircle, LogOut } from 'lucide-react';
+import { Menu, X, MessageCircle, LogOut, Heart } from 'lucide-react';
 import { useSelector } from 'react-redux'
 import MobileBottomNav from '../components/MobileBottomNav'
 import { assets } from '../assets/assets.js';
 import Loading from '../components/Loading.jsx';
-import { useClerk } from '@clerk/clerk-react';
+import { useAuth, useClerk, UserButton } from '@clerk/clerk-react';
+import toast from 'react-hot-toast';
+import api from '../api/axios.js';
 
 const Layout = () => {
   const user = useSelector((state) => state.user.value);
+  const {getToken} = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const pathName = location.pathname;
   const {signOut} = useClerk();
 
+  const [counts, setCounts] = useState({
+    unreadMessages: 0,
+    unreadNotifications: 0,
+    pendingConnections: 0,
+  });
+
+    const fetchActivitySummary = async () => {
+      try {
+        const token = await getToken();
+        const { data } = await api.get("/api/user/summary", {
+          headers: { 
+            Authorization: `Bearer ${token}` 
+          },
+        });
+
+        if (data.success)
+        {
+          setCounts(data.data);
+        }
+        else
+        {
+          toast.error(data.message)
+        }
+      } catch (err) {
+        console.error("Error fetching activity summary:", err);
+        toast.error(err.message)
+      }
+    };
+
+    useEffect(() => {
+      fetchActivitySummary();
+      const interval = setInterval(fetchActivitySummary, 2000);
+      return () => clearInterval(interval);
+    }, [user, getToken])
+
   return user ? (
     <div className='w-full flex h-screen'>
       {/* Sidebar for md+ screens */}
       <aside className='hidden md:flex'>
-        <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+        <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} counts={counts} />
       </aside>
 
       {/* Main area */}
@@ -33,13 +71,26 @@ const Layout = () => {
 
           <div className="flex items-center gap-2">
             {/* messages icon only */}
-            <button className="p-1 cursor-pointer" onClick={() => navigate("/messages")}>
+            <button className="relative p-1 cursor-pointer" onClick={() => navigate("/notifications")}>
+              <Heart className='w-6 h-6 text-gray-700' />
+              {
+                counts.unreadNotifications > 0 && (
+                    <span className="absolute top-1.5 left-5 w-2 h-2 bg-red-500 rounded-full"></span>
+                )
+              }
+            </button>
+            <button className="relative p-1 cursor-pointer" onClick={() => navigate("/messages")}>
               <MessageCircle className='w-6 h-6 text-gray-700' />
+              {
+                counts.unreadMessages > 0 && (
+                    <span className="absolute top-1.5 left-5 w-2 h-2 bg-red-500 rounded-full"></span>
+                )
+              }
             </button>
             {
               pathName === "/profile"
               && (
-                <LogOut onClick={signOut} className='w-5.5 text-black hover:text-gray-700 hover:scale-120 transition cursor-pointer' />
+                  <UserButton className='w-5.5 hover:scale-120 transition cursor-pointer'/>
               )
             }
           </div>
@@ -51,7 +102,7 @@ const Layout = () => {
         </main>
 
         {/* Bottom navigation for mobile */}
-        <MobileBottomNav />
+        <MobileBottomNav counts={counts} />
       </div>
 
       {/* Mobile drawer: render Sidebar as an absolute panel when sidebarOpen (optional) */}

@@ -16,10 +16,11 @@ import { fetchUsers } from './features/user/userSlice.js'
 import { fetchConnections } from './features/connections/connectionsSlice.js'
 import { addMessage, markMessageSeen } from './features/messages/messagesSlice.js'
 import Notification from './components/Notification.jsx'
-// import ScrollToHash from './components/ScrollToHash.jsx'
 import PostPage from './pages/PostPage.jsx'
 import api from './api/axios.js'
 import Loading from './components/Loading.jsx'
+import Notifications from './pages/Notifications.jsx'
+import { Error } from './pages/Error.jsx'
 
 
 const App = () => {
@@ -27,6 +28,7 @@ const App = () => {
   const {getToken, isLoaded} = useAuth();
   const {pathname} = useLocation();
   const pathNameRef = useRef(pathname);
+  const firstLoad = useRef(true);
 
   // const { signOut } = useAuth();
   // signOut();
@@ -66,7 +68,7 @@ const App = () => {
             else
             {
               const markAsSeen = async () => {
-              const token = await getToken();
+                const token = await getToken();
                 await api.post("/api/message/get", { to_user_id: msg.from_user_id._id }, {
                   headers: { Authorization: `Bearer ${token}` }
                 });
@@ -93,17 +95,36 @@ const App = () => {
     }
   }, [user, dispatch])
 
-    if (!isLoaded) {
-      return <Loading />;
+  useEffect(() => {
+    if (isLoaded && user) {
+      const welcomeShownKey = `welcome_shown_${user.id}`;
+
+      if (!sessionStorage.getItem(welcomeShownKey)) {
+        const createdAt = new Date(user.createdAt).getTime();
+        const lastSignInAt = new Date(user.lastSignInAt).getTime();
+
+        const welcomeMessage = createdAt === lastSignInAt
+          ? "Registration Successful! 🎉"
+          : `Welcome back, ${user.firstName || "User"}! 👋`;
+
+        toast.success(welcomeMessage);
+
+        sessionStorage.setItem(welcomeShownKey, "true");
+      }
     }
+  }, [isLoaded, user]);
+
+  if (!isLoaded) {
+    return <Loading />;
+  }
 
   return (
     <>
-      {/* <ScrollToHash /> */}
       <Toaster />
       <Routes>
         <Route path='/' element={!user ? <Login /> : <Layout />}>
           <Route index element={<Feed />} />
+          <Route path='notifications' element={<Notifications />} />
           <Route path='messages/:userId?' element={<Messages />} />
           <Route path='connections' element={<Connections />} />
           <Route path='discover' element={<Discover />} />
@@ -111,6 +132,7 @@ const App = () => {
           <Route path='profile/:profileId' element={<Profile />} />
           <Route path='create-post' element={<CreatePost />} />
           <Route path="/post/:postId" element={<PostPage />} />
+          <Route path='*' element={<Error />} />
         </Route>
       </Routes>
     </>

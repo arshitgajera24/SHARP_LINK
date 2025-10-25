@@ -10,6 +10,7 @@ import postRouter from "./routes/post.route.js";
 import storyRouter from "./routes/story.route.js";
 import messageRouter from "./routes/message.route.js";
 import commentRouter from "./routes/comments.route.js";
+import notificationsRouter from "./routes/notifications.route.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -32,6 +33,7 @@ app.use("/api/post", postRouter);
 app.use("/api/story", storyRouter);
 app.use("/api/message", messageRouter);
 app.use("/api/comment", commentRouter);
+app.use("/api/notifications", notificationsRouter);
 
 app.listen(PORT, () => {
     console.log(`🔥 Server is Running on port http://localhost:${PORT}`);

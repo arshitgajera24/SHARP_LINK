@@ -25,7 +25,7 @@ export const updateUser = createAsyncThunk("user/update", async ({userData, toke
 
     if(data.success)
     {
-        toast.success(data.message)
+        toast(`${data.message} 🧑‍💻`);
         return data.user;
     }
     else

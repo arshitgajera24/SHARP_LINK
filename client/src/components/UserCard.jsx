@@ -52,7 +52,9 @@ const UserCard = ({user}) => {
 
             if(data.success)
             {
-                toast.success(data.message);
+                toast(data.message, {
+                    icon: "👥"
+                });
             }
             else
             {

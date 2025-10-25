@@ -90,7 +90,9 @@ const StoryModel = ({setShowModel, fetchStories}) => {
             if(data.success)
             {
                 setShowModel(false)
-                toast.success(data.message);
+                toast(data.message, {
+                    icon: "📝",
+                });
                 fetchStories();
             }
             else

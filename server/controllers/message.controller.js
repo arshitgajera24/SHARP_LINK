@@ -6,7 +6,7 @@ import crypto from "crypto"
 const IV_LENGTH=16
 
 //* Create an Empty Object to Store Server-Side Event Collections
-const connections = {};
+export const connections = {};
 
 //* Controller Function for Server-Side Event End-point
 export const sseController = (req, res) => {

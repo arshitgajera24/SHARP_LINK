@@ -2,7 +2,7 @@ import React from "react";
 import { Home, Search, Plus, Users, User } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
-const MobileBottomNav = () => {
+const MobileBottomNav = ({counts}) => {
     const navigate = useNavigate();
 
   return (
@@ -27,8 +27,13 @@ const MobileBottomNav = () => {
             </div>
 
             {/* Connections */}
-            <button onClick={() => navigate("/connections")} className="flex-1 flex items-center justify-center cursor-pointer">
+            <button onClick={() => navigate("/connections")} className="relative flex-1 flex items-center justify-center cursor-pointer">
                 <Users className="w-6 h-6 text-gray-700" />
+                {
+                    counts.pendingConnections > 0 && (
+                        <span className="absolute top-0 left-11 w-2 h-2 bg-red-500 rounded-full"></span>
+                    )
+                }
             </button>
 
             {/* Profile */}

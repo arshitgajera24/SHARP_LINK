@@ -55,7 +55,9 @@ const Connections = () => {
 
       if(data.success)
       {
-        toast.success(data.message)
+        toast(data.message, {
+          icon: "🤝"
+        })
         dispatch(fetchConnections(await getToken()))
       }
       else
@@ -77,7 +79,9 @@ const Connections = () => {
 
       if(data.success)
       {
-        toast.success(data.message)
+        toast(data.message, {
+          icon: "💔"
+        })
         dispatch(fetchConnections(await getToken()))
       }
       else
@@ -99,7 +103,9 @@ const Connections = () => {
 
       if(data.success)
       {
-        toast.success(data.message)
+        toast(data.message, {
+          icon: "✂️"
+        })
         dispatch(fetchConnections(await getToken()))
       }
       else
@@ -121,7 +127,9 @@ const Connections = () => {
 
       if(data.success)
       {
-        toast.success(data.message)
+        toast(data.message, {
+          icon: "👋"
+        })
         dispatch(fetchConnections(await getToken()))
       }
       else

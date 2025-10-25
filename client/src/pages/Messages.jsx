@@ -24,7 +24,7 @@ const Messages = () => {
     setSelectedUserId(userId);
   }, [userId])
 
-  return <div className="flex h-screen bg-slate-50">
+  return <div className="flex h-full bg-slate-50">
       {/* Left Panel: Recent Chats */}
       <div className={`border-r border-gray-300 bg-white flex flex-col w-1/4 ${!userId ? 'w-full md:w-1/4 flex' : 'hidden md:flex'} max-h-screen`}>
         <RecentMessages selectedUserId={userId}

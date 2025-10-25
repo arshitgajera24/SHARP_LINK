@@ -114,6 +114,7 @@ const PostCard = ({post, onDelete}) => {
 
             if(data.success)
             {
+                toast("Comment Posted Successfully! 💭");
                 setComments(prev => [data.comments, ...prev]);
                 setNewComment("");
             }
@@ -128,7 +129,7 @@ const PostCard = ({post, onDelete}) => {
 
     useEffect(() => {
         loadComments();
-    }, [comments, currentUser])
+    }, [comments, currentUser, post._id])
 
     const toggleSelectUser = (userId) => {
         setSelectedUsers((prev) =>
@@ -162,11 +163,13 @@ const PostCard = ({post, onDelete}) => {
 
             if(response.data.success)
             {
-                toast.success("Post Sent Successfully!");
+                toast("Post Sent Successfully!", {
+                    icon: '🚀',
+                });
                 dispatch(addMessage({
                     ...response.data.message,
                     from_user_id: currentUser,
-                    to_user_id: selectedUsers[0], // loop if multiple
+                    to_user_id: selectedUsers[0],
                 }));
             }
             else
@@ -178,6 +181,32 @@ const PostCard = ({post, onDelete}) => {
             toast.error(error.message);
         }
     };
+
+    const handleDeleteComment = async (commentId) => {
+        if (!commentId) return;
+        const loadingId = toast.loading("Deleting...");
+        try {
+            const token = await getToken();
+            const { data } = await api.delete(`/api/comment/delete/${commentId}`, {
+                headers: { 
+                    Authorization: `Bearer ${token}` 
+                },
+            });
+
+            if (data.success) 
+            {
+                setComments(prev => prev.filter(c => c._id !== commentId));
+                toast.success(data.message, { id: loadingId });
+            }
+            else
+            {
+                toast.error(data.message, { id: loadingId });
+            }
+        } catch (error) {
+            console.log(error.message);
+            toast.error(error.message);
+        }
+    }
 
     useEffect(() => {
         if (currentUser) {
@@ -337,16 +366,23 @@ const PostCard = ({post, onDelete}) => {
                                     comments.length > 0
                                     ?   (
                                         comments.map((comment, index) => (
-                                            <div key={index} className='flex gap-3'>
-                                                <img src={comment?.user?.profile_picture} alt="User" className='w-9 h-9 rounded-full' />
-                                                <div className='flex flex-col'>
-                                                    <div className='flex items-center gap-2'>
+                                            <div key={comment?._id || index} className='flex gap-3 items-start'>
+                                                <img onClick={() => navigate(`/profile/${comment?.user?._id}`)} src={comment?.user?.profile_picture} alt="User" className='w-9 h-9 rounded-full cursor-pointer' />
+                                                <div className='flex-1'>
+                                                    <div onClick={() => navigate(`/profile/${comment?.user?._id}`)} className='flex items-center gap-2 cursor-pointer'>
                                                         <span className='font-semibold text-sm'>{comment?.user?.full_name}</span>
                                                         <span className='text-xs text-gray-400'>@{comment?.user?.username}</span>
                                                         <span className='text-xs text-gray-400'>• {moment(comment?.createdAt).fromNow()}</span>
                                                     </div>
                                                     <p className='text-sm text-gray-700'>{comment?.text}</p>
                                                 </div>
+                                                {
+                                                    (currentUser && (currentUser._id === comment?.user?._id || currentUser._id === post.user._id)) && (
+                                                        <button onClick={() => handleDeleteComment(comment?._id)} className="p-2 rounded-full hover:bg-gray-100 text-red-600 cursor-pointer" title="Delete comment">
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    )
+                                                }
                                             </div>
                                         ))
                                     ) : (

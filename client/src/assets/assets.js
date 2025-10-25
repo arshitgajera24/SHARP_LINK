@@ -3,7 +3,7 @@ import sample_cover from './sample_cover.jpg'
 import sample_profile from './sample_profile.jpg'
 import bgImage from './bgImage.png'
 import group_users from './group_users.png'
-import { Home, MessageCircle, Search, UserIcon, Users } from 'lucide-react'
+import { Heart, Home, MessageCircle, Search, UserIcon, Users } from 'lucide-react'
 import sponsored_img from './sponsored_img.png'
 import link_tab_icon from "./link_tab_icon.webp";
 import link_tab_icon_removebg from "./link_tab_icon-removebg.webp"
@@ -29,6 +29,7 @@ export const assets = {
 
 export const menuItemsData = [
     { to: '/', label: 'Feed', Icon: Home },
+    { to: '/notifications', label: 'Notifications', Icon: Heart },
     { to: '/messages', label: 'Messages', Icon: MessageCircle },
     { to: '/connections', label: 'Connections', Icon: Users },
     { to: '/discover', label: 'Discover', Icon: Search },

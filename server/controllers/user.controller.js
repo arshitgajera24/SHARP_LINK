@@ -5,6 +5,8 @@ import Post from "../models/Post.js";
 import User from "../models/User.js";
 import fs from "fs"
 import { decryptText, encryptText } from "./message.controller.js";
+import Notification from "../models/Notification.js";
+import Message from "../models/Message.js";
 
 //* Get User Data
 export const getUserData = async (req, res) => {
@@ -14,18 +16,7 @@ export const getUserData = async (req, res) => {
         const user = await User.findById(userId);
         if(!user) return res.json({success: false, message: "User not Found"});
 
-        const decryptedUser = {
-            ...user._doc,
-            email: decryptText(user.email),
-            username: decryptText(user.username),
-            full_name: decryptText(user.full_name),
-            bio: decryptText(user.bio),
-            location: decryptText(user.location),
-            profile_picture: decryptText(user.profile_picture),
-            cover_photo: decryptText(user.cover_photo)
-        };
-
-        res.json({ success: true, user: decryptedUser });
+        res.json({ success: true, user });
     } catch (error) {
         console.log(error);
         res.json({success: false, message: error.message});
@@ -54,10 +45,10 @@ export const updateUserData = async (req, res) => {
         }
 
         const updatedData = {
-            username: encryptText(username),
-            bio: encryptText(bio),
-            location: encryptText(location),
-            full_name: encryptText(full_name)
+            username,
+            bio,
+            location,
+            full_name
         }
 
         const profile = req.files.profile && req.files.profile[0]
@@ -79,7 +70,7 @@ export const updateUserData = async (req, res) => {
                     { width: '512' },
                 ]
             })
-            updatedData.profile_picture = encryptText(url);
+            updatedData.profile_picture = url;
         }
 
         if(cover)
@@ -98,7 +89,7 @@ export const updateUserData = async (req, res) => {
                     { width: '1280' },
                 ]
             })
-            updatedData.cover_photo = encryptText(url);
+            updatedData.cover_photo = url;
         }
 
         const user = await User.findByIdAndUpdate(userId, updatedData, { new: true })
@@ -127,16 +118,7 @@ export const discoverUsers = async (req, res) => {
             }
         )
 
-        const filterUsers = allUsers.filter(user => user._id !== userId).map(user => ({
-            ...user._doc,
-            email: decryptText(user.email),
-            username: decryptText(user.username),
-            full_name: decryptText(user.full_name),
-            bio: decryptText(user.bio),
-            location: decryptText(user.location),
-            profile_picture: decryptText(user.profile_picture),
-            cover_photo: decryptText(user.cover_photo)
-        }));
+        const filterUsers = allUsers.filter(user => user._id !== userId);
 
         res.json({success: true, users: filterUsers});
     } catch (error) {
@@ -162,6 +144,20 @@ export const followUser = async (req, res) => {
         const toUser = await User.findById(id);
         toUser.followers.push(userId);
         await toUser.save();
+
+        const existingFollowNotification = await Notification.findOne({
+            to_user_id: id,
+            from_user_id: userId,
+            message: ` Started Following You`
+        });
+
+        if (!existingFollowNotification) {
+            await Notification.create({
+                to_user_id: id,
+                from_user_id: userId,
+                message: ` Started Following You`
+            });
+        }
     
         res.json({success: true, message: "Followed Successfully"});
     } catch (error) {
@@ -184,6 +180,12 @@ export const unfollowUser = async (req, res) => {
         toUser.followers = toUser.followers.filter(user => user !== userId);
         await toUser.save();
 
+        await Notification.findOneAndDelete({
+            to_user_id: id,
+            from_user_id: userId,
+            message: ` Started Following You`
+        });
+
         res.json({success: true, message: "Unfollowed Successfully"});
     } catch (error) {
         console.log(error);
@@ -196,6 +198,8 @@ export const sendConnectionRequest = async (req, res) => {
     try {
         const {userId} = req.auth();
         const {id} = req.body;
+
+        const user = await User.findById(userId);
 
         //! user can send only 20 Request in 24 Hours
         const last24Hours = new Date(Date.now() - 24*60*60*1000);
@@ -227,6 +231,20 @@ export const sendConnectionRequest = async (req, res) => {
                 name: "app/connection-request",
                 data: { connectionId: newConnection._id },
             })
+
+            const existingConnectionNotification = await Notification.findOne({
+                to_user_id: id,
+                from_user_id: userId,
+                message: ` Sent You a Connection Request`
+            });
+
+            if (!existingConnectionNotification) {
+                await Notification.create({
+                    to_user_id: id,
+                    from_user_id: userId,
+                    message: ` Sent You a Connection Request`
+                });
+            }
 
             return res.json({success: true, message: "Connection Request Sent Successfully"});
         }
@@ -288,6 +306,34 @@ export const acceptConnectionRequest = async (req, res) => {
         toUser.connections.push(userId);
         await toUser.save();
 
+        const existingUserNotification = await Notification.findOne({
+            to_user_id: userId,
+            from_user_id: id,
+            message: ` and You are now Connected`
+        });
+
+        if (!existingUserNotification) {
+            await Notification.create({
+                to_user_id: userId,
+                from_user_id: id,
+                message: ` and You are now Connected`
+            });
+        }
+
+        const existingToUserNotification = await Notification.findOne({
+            to_user_id: id,
+            from_user_id: userId,
+            message: ` and You are now Connected`
+        });
+
+        if (!existingToUserNotification) {
+            await Notification.create({
+                to_user_id: id,
+                from_user_id: userId,
+                message: ` and You are now Connected`
+            });
+        }
+
         connection.status = "accepted";
         await connection.save();
         
@@ -347,17 +393,6 @@ export const getUserProfiles = async (req, res) => {
         const profile = await User.findById(profileId);
         if(!profile) return res.json({success: false, message: "Profile not Found"});
 
-        const decryptedProfile = {
-            ...profile._doc,
-            email: decryptText(profile.email),
-            username: decryptText(profile.username),
-            full_name: decryptText(profile.full_name),
-            bio: decryptText(profile.bio),
-            location: decryptText(profile.location),
-            profile_picture: decryptText(profile.profile_picture),
-            cover_photo: decryptText(profile.cover_photo)
-        };
-
         const connection = await Connection.findOne({
             $or: [
                 { from_user_id: userId, to_user_id: profileId },
@@ -373,7 +408,7 @@ export const getUserProfiles = async (req, res) => {
             image_urls: post.image_urls.map(url => decryptText(url))
         }));
 
-        res.json({success: true, profile: decryptedProfile, posts: decryptedPosts, connectionStatus: connection ? connection.status : null });
+        res.json({success: true, profile, posts: decryptedPosts, connectionStatus: connection ? connection.status : null });
     } catch (error) {
         console.log(error);
         res.json({success: false, message: error.message});
@@ -410,5 +445,28 @@ export const removeFromFollowers = async (req, res) => {
     } catch (error) {
         console.log(error);
         res.json({success: false, message: error.message});
+    }
+}
+
+
+export const getUnseenCounts = async (req, res) => {
+    try {
+        const {userId} = req.auth();
+
+        const [unreadMessages, unreadNotifications, pendingConnections] = await Promise.all([
+            Message.countDocuments({ to_user_id: userId, seen: false }),
+            Notification.countDocuments({ to_user_id: userId, read: false }),
+            Connection.countDocuments({ to_user_id: userId, status: "pending" }),
+        ]);
+
+        res.json({ success: true, data: {
+                unreadMessages,
+                unreadNotifications,
+                pendingConnections,
+            },
+        });
+    } catch (error) {
+        console.error(error.message);
+        res.json({ success: false, message: error.message });
     }
 }

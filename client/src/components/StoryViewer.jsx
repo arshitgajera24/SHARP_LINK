@@ -49,12 +49,13 @@ const StoryViewer = ({ viewStory, setViewStory, setSelectedStoryId = null }) => 
 
             if(data.success)
             {
-                toast.success(data.message, { id: toastId });
+                toast.success(data.message, { id: toastId, icon: "🗑️" });
 
                 const updatedStories = viewStory.filter(s => s._id !== storyId);
 
                 if (updatedStories.length === 0) {
                     setViewStory(null);
+                    setSelectedStoryId(null);
                     return;
                 }
 

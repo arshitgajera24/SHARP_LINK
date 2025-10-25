@@ -1,4 +1,6 @@
 import Comment from "../models/Comments.js";
+import Notification from "../models/Notification.js";
+import Post from "../models/Post.js";
 import { decryptText, encryptText } from "./message.controller.js";
 
 
@@ -20,6 +22,21 @@ export const addComment = async (req, res) => {
             text: decryptText(populatedComment.text)
         };
 
+        const post = await Post.findById(postId);
+        console.log(post + " -> " + post.user + " -> " + userId);
+        
+
+        if (post && post.user !== userId) {
+            await Notification.create({
+                to_user_id: post.user,
+                from_user_id: userId,
+                message: ` Commented: "${decryptedComment.text}"`,
+                reference_id: postId,
+                reference_preview: post.image_urls[0] || null
+            });
+            console.log("notification");
+        }
+
         res.json({success: true, comment: decryptedComment});
     } catch (error) {
         console.log(error);
@@ -40,6 +57,20 @@ export const getAllComments = async (req, res) => {
         }));
 
         res.json({ success: true, comments: decryptedComments });
+    } catch (error) {
+        console.log(error);
+        res.json({success: false, message: error.message});
+    }
+}
+
+//* Delete Comment
+export const deleteComment = async (req, res) => {
+    try {
+        const {commentId} = req.params;
+
+        await Comment.findByIdAndDelete(commentId);
+
+        res.json({ success: true, message: "Comment Deleted" });
     } catch (error) {
         console.log(error);
         res.json({success: false, message: error.message});

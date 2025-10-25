@@ -79,7 +79,7 @@ const Chatbox = ({ selectedUserId }) => {
     
         if(data.success)
         {
-            toast.success(data.message, { id: toastId });
+            toast.success(`${data.message} 💨`, { id: toastId });
             fetchUserMessages();
             setClickedMessageId(null);
         }
@@ -134,8 +134,33 @@ const Chatbox = ({ selectedUserId }) => {
     }
   }, [messages]);
 
+  const renderMessageText = (text) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+    const parts = text.split(urlRegex);
+
+    return parts.map((part, index) => {
+      if (part.match(urlRegex)) {
+        return (
+          <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline" >
+            {part}
+          </a>
+        );
+      } else if (part.startsWith("/")) {
+        return (
+          <span key={index} onClick={() => navigate(part)} className="text-blue-600 hover:underline cursor-pointer" >
+            {part}
+          </span>
+        );
+      } else {
+        return <span key={index}>{part}</span>;
+      }
+    });
+  };
+
+
   return user && (
-    <div className='flex flex-col flex-1 max-h-screen overflow-x-hidden'>
+    <div className='flex flex-col flex-1 max-h-full overflow-x-hidden'>
       <div onClick={() => navigate(`/profile/${userId}`)} className='flex items-center gap-2 p-2 md:px-10 bg-white border-b border-gray-300 sticky top-0 z-10 cursor-pointer'>
         <button onClick={(e) => {e.stopPropagation(); navigate("/messages");}}>
           <ArrowLeft className='w-6 h-6 hover:scale-110 active:scale-95 mr-2 cursor-pointer' />
@@ -154,7 +179,7 @@ const Chatbox = ({ selectedUserId }) => {
               const sentByCurrentUser = message.from_user_id === currentUser._id;
               
               return <div key={index} id={`message-${message._id}`} className={`flex flex-col relative ${message.to_user_id !== user._id ? "items-start" : "items-end"}`}>
-                <div className={`p-2 text-sm max-w-xs bg-white text-slate-700 rounded-lg shadow ${message.to_user_id !== user._id ? "rounded-bl-none" : "rounded-br-none"}`}>
+                <div className={`p-2 text-sm max-w-xs rounded-lg shadow ${message.to_user_id !== user._id ? "rounded-bl-none bg-gradient-to-l from-violet-50 to-indigo-100" : "rounded-br-none bg-gradient-to-r from-indigo-500 to-purple-700 text-white"}`}>
                   
                   {/* Image Message */}
                   {
@@ -204,7 +229,9 @@ const Chatbox = ({ selectedUserId }) => {
 
                   {/* Text Message */}
                   {
-                    message.message_type === "text" && <p>{message.text}</p>
+                    message.message_type === "text" && <p className="break-words">
+                      {renderMessageText(message.text)}
+                    </p>
                   }
 
                   {/* 3-dot menu button */}

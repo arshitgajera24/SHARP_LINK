@@ -104,7 +104,9 @@ const Profile = () => {
 
       if(data.success)
       {
-        toast.success(data.message);
+        toast(data.message, {
+          icon: "👥"
+        });
       }
       else 
       {
@@ -164,7 +166,7 @@ const Profile = () => {
 
   return user ? (
     <div className='relative h-full bg-gray-50 p-6 md:overflow-y-scroll'>
-      <div id="p1" className='max-w-3xl mx-auto'>
+      <div className='max-w-3xl mx-auto'>
         
         {/* Profile Card */}
         <div className='bg-white rounded-2xl shadow overflow-hidden'>
@@ -216,23 +218,28 @@ const Profile = () => {
           {/* Posts */}
           {
             activeTab === "Posts"
-            && (
+            && (posts.length > 0 ? (
               <div className='mt-6 flex flex-col items-center gap-6'>
                 {
                   posts.map((post) => (<PostCard key={post._id} post={post} onDelete={handleDeleteFromProfile} />))
                 }
               </div>
-            )
+            ) : (
+              <div className="mt-6 bg-white p-6 rounded-xl shadow">
+                <h2 className="text-lg font-semibold text-gray-800 mb-4">Posts</h2>
+                <p className="text-gray-500 text-center mt-4">No Posts yet 👀</p>
+              </div>
+            ))
           }
 
           {/* Media */}
           {
             activeTab === "Media"
-            && (
+            && (posts.length > 0 ? (
               <div className='flex flex-wrap mt-6 max-w-6xl'>
                 {
-                  posts.filter((post) => post.image_urls.length > 0).map((post) => (
-                    <>
+                  posts.filter((post) => post.image_urls.length > 0).map((post, index) => (
+                    <div key={index}>
                       {
                         post.image_urls.map((image, index) => (
                           <Link target="_blank" to={image} key={index} className='relative group'>
@@ -241,11 +248,16 @@ const Profile = () => {
                           </Link>
                         ))
                       }
-                    </>
+                    </div>
                   ))
                 }
               </div>
-            )
+            ) : (
+              <div className="mt-6 bg-white p-6 rounded-xl shadow">
+                <h2 className="text-lg font-semibold text-gray-800 mb-4">Media</h2>
+                <p className="text-gray-500 text-center mt-4">No Posts or Media yet 📭😔</p>
+              </div>
+            ))
           }
 
           {/* Connections */}
@@ -258,7 +270,7 @@ const Profile = () => {
                   userConnections.length > 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                       {userConnections.map((connection) => (
-                        <div key={connection._id} onClick={() => navigate(`/profile/${connection._id}#p1`)} className="flex flex-col items-center p-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl shadow hover:shadow-md hover:-translate-y-1 transition cursor-pointer border border-indigo-100">
+                        <div key={connection._id} onClick={() => navigate(`/profile/${connection._id}`)} className="flex flex-col items-center p-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl shadow hover:shadow-md hover:-translate-y-1 transition cursor-pointer border border-indigo-100">
                           <img src={connection.profile_picture || "/default-avatar.png"}alt={connection.full_name}className="w-14 h-14 rounded-full object-cover border border-purple-200 mb-2" />
                           <p className="text-sm font-semibold text-gray-800 text-center truncate w-full">{connection.full_name}</p>
                           {

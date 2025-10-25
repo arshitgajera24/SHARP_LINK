@@ -3,6 +3,7 @@ import imagekit from "../config/imagekit.js";
 import Post from "../models/Post.js";
 import User from "../models/User.js";
 import { decryptText, encryptText } from "./message.controller.js";
+import Notification from "../models/Notification.js";
 
 //* Add Post
 export const addPost = async (req, res) => {
@@ -86,12 +87,34 @@ export const likePost = async (req, res) => {
         {
             post.likes_count = post.likes_count.filter(user => user !== userId);
             await post.save();
+
+            await Notification.deleteOne({
+                to_user_id: post.user,
+                from_user_id: userId,
+                reference_id: postId,
+                message: { $regex: /liked your post/i }
+            });
+
             res.json({success: true, message: "Post Unliked"});
         }
         else
         {
             post.likes_count.push(userId);
             await post.save();
+
+            if(post.user !== userId)
+            {
+                const liker = await User.findById(userId);
+
+                await Notification.create({
+                    to_user_id: post.user,
+                    from_user_id: userId,
+                    message: ` Liked Your Post`,
+                    reference_id: postId,
+                    reference_preview: post.image_urls[0] || null
+                });
+            }
+
             res.json({success: true, message: "Post Liked"});
         }
     } catch (error) {

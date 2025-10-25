@@ -23,4 +23,6 @@ userRouter.route("/profiles").post(userControllers.getUserProfiles);
 
 userRouter.route("/recent-messages").get(protect, messageControllers.getUserRecentMessages)
 
+userRouter.route("/summary").get(protect, userControllers.getUnseenCounts);
+
 export default userRouter;
