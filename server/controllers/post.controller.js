@@ -9,56 +9,13 @@ import Notification from "../models/Notification.js";
 export const addPost = async (req, res) => {
     try {
         const {userId} = req.auth();
-        const {content, post_type} = req.body;
-        const images = req.files["images"] || [];
-        const videoFile = req.files["video"]?.[0];
-
-        let image_urls = [];
-        let video_url = "";
-
-        if(images.length)
-        {
-            image_urls = await Promise.all(
-                images.map(async (image) => {
-                    const fileBuffer = fs.readFileSync(image.path);
-                    const response = await imagekit.upload({
-                        file: fileBuffer,
-                        fileName: image.originalname,
-                        folder: "posts",
-                    })
-                    
-                    const url = imagekit.url({
-                        path: response.filePath,
-                        transformation: [
-                            { quanlity: "auto" },
-                            { format: "webp" },
-                            { width: '1280' },
-                        ]
-                    })
-                    return url;
-                })
-            )
-        }
-
-        if(videoFile)
-        {
-            const fileBuffer = fs.readFileSync(videoFile.path);
-            const response = await imagekit.upload({
-                file: fileBuffer,
-                fileName: videoFile.originalname,
-                folder: "posts/videos",
-            });
-            video_url = imagekit.url({
-                path: response.filePath,
-                transformation: [{ height: "360" }, { format: "mp4" }]
-            });
-        }
+        const {content, post_type, images, video} = req.body;
 
         await Post.create({
             user: userId,
             content,
-            image_urls: image_urls.map(url => encryptText(url)),
-            video_url: encryptText(video_url),
+            image_urls: images?.map(url => encryptText(url)) || [],
+            video_url: encryptText(video || ""),
             post_type
         });
 

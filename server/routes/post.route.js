@@ -1,11 +1,22 @@
 import { Router } from "express";
 import { protect } from "../middleware/auth.js";
-import { upload } from "../config/multer.js";
 import * as postControllers from "../controllers/post.controller.js";
+import ImageKit from "imagekit";
 
 const postRouter = Router();
 
-postRouter.route("/add").post(upload.fields([ {name: "images", maxCount: 4}, {name: "video", maxCount: 1} ]), protect, postControllers.addPost);
+const imagekit = new ImageKit({
+    publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
+    privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
+    urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
+});
+
+postRouter.route("/imagekit").get((req, res) => {
+    const authParams = imagekit.getAuthenticationParameters();
+    res.json(authParams);
+})
+
+postRouter.route("/add").post(protect, postControllers.addPost);
 postRouter.route("/feed").get(protect, postControllers.getFeedPosts);
 postRouter.route("/like").post(protect, postControllers.likePost);
 postRouter.route("/:id").get(protect, postControllers.getPostById);

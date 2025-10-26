@@ -5,6 +5,12 @@ import { useSelector } from 'react-redux';
 import { useAuth } from '@clerk/clerk-react';
 import api from '../api/axios.js';
 import { useNavigate } from 'react-router-dom';
+import ImageKit from 'imagekit-javascript';
+
+const imagekit = new ImageKit({
+  publicKey: import.meta.env.VITE_IMAGEKIT_PUBLIC_KEY,
+  urlEndpoint: import.meta.env.VITE_IMAGEKIT_URL_ENDPOINT,
+});
 
 const CreatePost = () => {
 
@@ -19,6 +25,33 @@ const CreatePost = () => {
   const user = useSelector((state) => state.user.value);
   const {getToken} = useAuth();
 
+  const uploadFile = async (file) => {
+    try {
+      const { data: authParams } = await api.get("/api/post/imagekit");
+
+      return new Promise((resolve, reject) => {
+        imagekit.upload(
+          {
+            file,
+            fileName: file.name,
+            folder: file.type.startsWith("video/") ? "posts/videos" : "posts",
+            ...authParams
+          },
+          (err, result) => {
+            if (err) 
+            {
+              reject(err);
+              console.log(err)
+            }
+            else resolve(result.url);
+          }
+        );
+      });
+    } catch (err) {
+      throw new Error("Failed to get ImageKit auth token");
+    }
+  };
+
   const handleSubmit = async () => {
     if(!images.length && !content)
     {
@@ -26,43 +59,57 @@ const CreatePost = () => {
       return;
     }
     setLoading(true);
+    let imageUrls = [];
+    let videoUrl = null;
+    console.log("click");
 
-    const postType = video && content ? "text_with_video" : video ? "video" : images.length && content ? "text_with_image" : images.length ? "image" : "text";
+    try {
 
-      const formData = new FormData();
-      formData.append("content", content);
-      formData.append("post_type", postType);
-      if(video) formData.append("video", video);
-      images.map((image) => {
-        formData.append("images", image);
-      })
+      const postType = video && content ? "text_with_video" : video ? "video" : images.length && content ? "text_with_image" : images.length ? "image" : "text"; 
 
       await toast.promise(
-        (async () => {
-            const {data} = await api.post("/api/post/add", formData, {
-              headers: {
-                Authorization: `Bearer ${await getToken()}`,
+          (async () => {
+            if (images.length) imageUrls = await Promise.all(images.map(img => uploadFile(img)));
+            if (video) videoUrl = await uploadFile(video);
+            console.log("Images:", images, "Video:", video);
+            console.log("ImagesUrls:", imageUrls, "VideoUrls:", videoUrl);
+
+            if(imageUrls || videoUrl)
+            {
+              const {data} = await api.post("/api/post/add", {
+                content,
+                post_type: postType,
+                images: imageUrls,
+                video: videoUrl
+              }, {
+                headers: {
+                  Authorization: `Bearer ${await getToken()}`,
+                }
+              })
+
+              if(data.success)
+              {
+                navigate("/")
               }
-            })
-
-            if(data.success)
-            {
-              navigate("/")
+              else 
+              {
+                console.log(data.message)
+                throw new Error(data.message)
+              }
             }
-            else 
-            {
-              console.log(data.message)
-              throw new Error(data.message)
-            }
-        })(),
-        {
-          loading: "Uploading...", 
-          success: <p>Post Uploaded Successfully</p>, 
-          error: <p>Post Uploading Failed</p>
-        }
-      )
-
-      
+          })(),
+          {
+            loading: "Uploading...", 
+            success: <p>Post Uploaded Successfully</p>, 
+            error: <p>Post Uploading Failed</p>
+          }
+        )
+    }
+    catch (error)
+    {
+      toast.error(error.message)
+      console.log(error.message)
+    }
     setLoading(false)
   }
 
