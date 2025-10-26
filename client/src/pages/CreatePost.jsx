@@ -36,29 +36,34 @@ const CreatePost = () => {
             fileName: file.name,
             folder: file.type.startsWith("video/") ? "posts/videos" : "posts",
             ...authParams,
-            transformation: file.type.startsWith("video/")
-              ? [{
-                  height: "360",
-                  format: "mp4",
-                  quality: "auto",
-                  // Video transformations require either pre or post
-                  pre: "video"
-                }]
-              : [{
-                  width: "1280",
-                  format: "webp",
-                  quality: "auto",
-                  // Image transformations require either pre or post
-                  pre: "image"
-                }]
+            transformation: [{
+              pre: file.type.startsWith("video/") ? "video" : "image",
+              transformation: [
+                {
+                  type: file.type.startsWith("video/") ? "video" : "image",
+                  ...(file.type.startsWith("video/")
+                    ? {
+                        height: "360",
+                        format: "mp4",
+                      }
+                    : {
+                        width: "1280",
+                        format: "webp",
+                      }),
+                }
+              ]
+            }]
           },
           (err, result) => {
             if (err) 
             {
+              console.error('ImageKit Upload Error:', err);
               reject(err);
-              console.log(err)
             }
-            else resolve(result.url);
+            else {
+              console.log('ImageKit Upload Success:', result);
+              resolve(result.url);
+            }
           }
         );
       });
