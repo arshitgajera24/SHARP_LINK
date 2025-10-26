@@ -181,7 +181,7 @@ const Chatbox = ({ selectedUserId }) => {
                   
                   {/* Image Message */}
                   {
-                    message.message_type === "image" && <img src={message.media_url} alt="Chat Media" className='w-full max-w-sm rounded-lg mb-1' loading='lazy' decoding='async' onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
+                    message.message_type === "image" && <img src={message.media_url} alt="Chat Media" className='w-[150px] h-[225px] max-w-sm rounded-lg mb-1' loading='lazy' decoding='async' onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                   }
 
                   {/* Post Message */}
@@ -205,12 +205,12 @@ const Chatbox = ({ selectedUserId }) => {
                         {/* Post Media */}
                         {
                           message?.post_id?.video_url ? (
-                            <video src={message?.video_url} className='w-[300px] h-[300px]' ></video>
+                            <video src={message?.video_url} className='w-[200px] h-[250px]' ></video>
                           ) : (
                             <>
                               {
                                 message.media_url && (
-                                  <img src={message.media_url} alt="Shared Post" className="w-full object-cover max-h-80" loading='lazy' decoding='async' onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}}/>
+                                  <img src={message.media_url} alt="Shared Post" className="w-[200px] h-[250px] object-contain max-h-80" loading='lazy' decoding='async' onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}}/>
                                 )
                               }
                             </>

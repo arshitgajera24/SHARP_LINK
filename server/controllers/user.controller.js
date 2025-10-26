@@ -299,10 +299,12 @@ export const acceptConnectionRequest = async (req, res) => {
         if(!connection) return res.json({success: false, message: "Connection not Found"});
 
         const user = await User.findById(userId);
+        if(user.connections.includes(id)) return;
         user.connections.push(id);
         await user.save();
 
         const toUser = await User.findById(id);
+        if(toUser.connections.includes(userId)) return;
         toUser.connections.push(userId);
         await toUser.save();
 
