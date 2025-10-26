@@ -6,9 +6,9 @@ import { X } from 'lucide-react';
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
 
-const StoryViewsModel = ({ storyId, onClose }) => {
+const StoryViewsModel = ({ storyId, initialViewers, onClose }) => {
 
-    const [viewers, setViewers] = useState([]);
+    const [viewers, setViewers] = useState(initialViewers);
     const [loaded, setLoaded] = useState(false);
     const { getToken } = useAuth();
     const navigate = useNavigate();
@@ -34,7 +34,9 @@ const StoryViewsModel = ({ storyId, onClose }) => {
     };
 
     useEffect(() => {
-        fetchViewers();
+        if (initialViewers.length === 0) {
+            fetchViewers();
+        }
     }, [storyId]);
 
     return (

@@ -98,7 +98,7 @@ const Storiesbar = () => {
                         setSelectedStoryId(myStory.stories[0]._id);
                         setViewStory(myStory.stories);
                     }} >
-                    <div className="relative size-20 sm:size-18 md:size-20 rounded-full p-[2px] bg-gradient-to-tr from-indigo-500 to-purple-600">
+                    <div className="relative size-16 sm:size-18 md:size-20 rounded-full p-[2px] bg-gradient-to-tr from-indigo-500 to-purple-600">
                         <div className="bg-white rounded-full size-full flex items-center justify-center relative">
                             <img src={myStory.user.profile_picture} alt={myStory.user.full_name} className="size-14 sm:size-16 md:size-18 rounded-full object-cover border-2 border-white transition-transform duration-300 group-hover:scale-105" loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                             <button onClick={(e) => {

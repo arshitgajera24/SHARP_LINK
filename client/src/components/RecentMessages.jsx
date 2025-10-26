@@ -4,6 +4,7 @@ import moment from 'moment';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import api from '../api/axios.js';
 import toast from 'react-hot-toast';
+import Loading from './Loading.jsx';
 
 const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
 
@@ -14,6 +15,7 @@ const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
     const pathName = location.pathname;
     const navigate = useNavigate();
     const {getToken} = useAuth();
+    const [loading, setLoading] = useState(false);
 
     const fetchRecentMessages = async () => {
         try {
@@ -88,12 +90,17 @@ const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
     };
 
     useEffect(() => {
-        if(user)
-        {
-            fetchRecentMessages();
-            const interval = setInterval(fetchRecentMessages, 15000)
-            return () => clearInterval(interval);
+        const fetchMessages = async () => {
+            if(user)
+            {
+                setLoading(true);
+                await fetchRecentMessages();
+                setLoading(false);
+                const interval = setInterval(fetchRecentMessages, 15000)
+                return () => clearInterval(interval);
+            }
         }
+        fetchMessages();
     }, [user])    
 
   return pathName === "/" ? (
@@ -124,7 +131,7 @@ const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
             }
         </div>
     </div>
-  ) : (
+  ) : loading ? <Loading /> : (
     <div className="flex flex-col h-full">
         <h3 className="p-3 font-semibold border-b border-gray-200 sticky top-0 bg-white z-10">Recent Chats</h3>
         <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 max-h-screen">

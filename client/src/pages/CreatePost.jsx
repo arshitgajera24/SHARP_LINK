@@ -84,8 +84,6 @@ const CreatePost = () => {
           (async () => {
             if (images.length) imageUrls = await Promise.all(images.map(img => uploadFile(img)));
             if (video) videoUrl = await uploadFile(video);
-            console.log("Images:", images, "Video:", video);
-            console.log("ImagesUrls:", imageUrls, "VideoUrls:", videoUrl);
 
             if(imageUrls || videoUrl)
             {

@@ -17,6 +17,7 @@ const StoryViewer = ({ viewStory, setViewStory, setSelectedStoryId = null }) => 
     const [isPaused, setIsPaused] = useState(false);
     const [showViewsModal, setShowViewsModal] = useState(false);
     const [loaded, setLoaded] = useState(false);
+    const [viewers, setViewers] = useState([]);
 
     const { user } = useUser();
     const { getToken } = useAuth();
@@ -88,6 +89,7 @@ const StoryViewer = ({ viewStory, setViewStory, setSelectedStoryId = null }) => 
 
             if (data.success) {
                 setViewCount(data.viewers.length);
+                setViewers(data.viewers.sort((a, b) => new Date(b.viewedAt) - new Date(a.viewedAt)));
             }
         } catch (error) {
             toast.error(error.message);
@@ -320,6 +322,7 @@ const StoryViewer = ({ viewStory, setViewStory, setSelectedStoryId = null }) => 
                 showViewsModal && (
                     <StoryViewsModel
                         storyId={currentStory._id}
+                        initialViewers={viewers}
                         onClose={(e) => {
                             e.stopPropagation();
                             closeViews();
