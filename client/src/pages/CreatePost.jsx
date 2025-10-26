@@ -51,7 +51,7 @@ const CreatePost = () => {
               let optimizedUrl = result.url;
               
               if (file.type.startsWith("video/")) {
-                optimizedUrl += "?tr=h-360,q-60,f-auto";
+                optimizedUrl = result.url;
               } else {
                 optimizedUrl += "?tr=w-1280,f-webp,q-80";
               }
@@ -75,7 +75,6 @@ const CreatePost = () => {
     setLoading(true);
     let imageUrls = [];
     let videoUrl = null;
-    console.log("click");
 
     try {
 

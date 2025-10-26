@@ -30,6 +30,8 @@ const PostCard = ({post, onDelete}) => {
     const [postToDelete, setPostToDelete] = useState(null);
 
     const [muted, setMuted] = useState(false);
+    const [isVideoLoading, setIsVideoLoading] = useState(true);
+    const [videoError, setVideoError] = useState(false);
     const videoRef = useRef(null);
 
     const { getToken } = useAuth();
@@ -396,9 +398,38 @@ const PostCard = ({post, onDelete}) => {
         {/* Media */}
         {
             post.video_url ? (
-                <div className="relative w-full h-[500px] overflow-hidden rounded-lg mt-2">
-                    <video  ref={videoRef} src={post.video_url} autoPlay loop playsInline className="w-full h-full" preload="metadata" onClick={handleVideoClick} onDoubleClick={handleLike} poster={`${post.video_url.split('?')[0]}?tr=h-360,b-5`} ></video>
-                    <button onClick={() => setMuted(!muted)} className="absolute bottom-2 right-2 bg-black/50 p-2 rounded-full text-white cursor-pointer" >
+                <div className="relative w-full h-[500px] overflow-hidden rounded-lg mt-2 bg-gray-100">
+                    {isVideoLoading && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                            <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                    )}
+                    {videoError ? (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                            <p className="text-gray-500">Video failed to load</p>
+                        </div>
+                    ) : (
+                        <video 
+                            ref={videoRef}
+                            src={post.video_url}
+                            autoPlay
+                            loop
+                            playsInline
+                            className={`w-full h-full object-contain transition-opacity duration-300 ${isVideoLoading ? 'opacity-0' : 'opacity-100'}`}
+                            preload="auto"
+                            onClick={handleVideoClick}
+                            onDoubleClick={handleLike}
+                            onLoadStart={() => setIsVideoLoading(true)}
+                            onCanPlay={() => setIsVideoLoading(false)}
+                            onError={(e) => {
+                                console.error('Video loading error:', e);
+                                setVideoError(true);
+                                setIsVideoLoading(false);
+                            }}
+                        ></video>
+                    )}
+                    <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/5 to-transparent"></div>
+                    <button onClick={() => setMuted(!muted)} className="absolute bottom-2 right-2 bg-black/50 p-2 rounded-full text-white cursor-pointer z-10" >
                         {muted ? <GoMute /> : <GoUnmute />}
                     </button>
                     {
