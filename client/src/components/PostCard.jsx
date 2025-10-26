@@ -437,10 +437,10 @@ const PostCard = ({post, onDelete}) => {
                     }
                 </div>
             ) : (
-                <div className='relative flex gap-1 justify-center' onDoubleClick={handleLike}>
+                <div className={`grid ${post.image_urls.length > 1 ? "grid-cols-2 gap-2" : ""} justify-center`} onDoubleClick={handleLike}>
                     {
                         post.image_urls.map((img, index) => (
-                            <img src={img} key={index} alt="Post Images" className={`w-[250px] h-48 object-contain rounded-lg ${post.image_urls.length === 1 && "col-span-2 h-auto"}`} loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
+                            <img src={img} key={index} alt="Post Images" className={`w-full max-w-[600px] h-auto max-h-[50vh] object-contain rounded-lg mx-auto transition-all duration-300 ${post.image_urls.length > 1 ? "sm:w-[48%]" : "w-full"}`} loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                         ))
                     }
             
