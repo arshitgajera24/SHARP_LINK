@@ -38,17 +38,14 @@ const CreatePost = () => {
             ...authParams,
             transformation: [
               {
-                pre: [],
                 post: file.type.startsWith("video/")
                   ? [
-                      { height: "360" },
-                      { format: "mp4" },
-                      { quality: "auto" }
+                      { height: "360", quality: "auto" },  // height and quality together
+                      { format: "mp4" }                     // format as separate object
                     ]
                   : [
-                      { width: "1280" },
-                      { format: "webp" },
-                      { quality: "auto" }
+                      { width: "1280", quality: "auto" },  // width and quality
+                      { format: "webp" }                    // format as separate object
                     ]
               }
             ]
