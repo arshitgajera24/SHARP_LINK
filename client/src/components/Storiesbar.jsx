@@ -93,7 +93,7 @@ const Storiesbar = () => {
         {loading ? (
             // Show shimmer while stories are loading
             <>
-                {[...Array(4)].map((_, i) => (
+                {[...Array(6)].map((_, i) => (
                     <StorySkeleton key={i} />
                 ))}
             </>
