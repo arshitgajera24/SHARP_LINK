@@ -5,7 +5,7 @@ import * as postControllers from "../controllers/post.controller.js";
 
 const postRouter = Router();
 
-postRouter.route("/add").post(upload.array("images", 4), protect, postControllers.addPost);
+postRouter.route("/add").post(upload.fields([ {name: "images", maxCount: 4}, {name: "video", maxCount: 1} ]), protect, postControllers.addPost);
 postRouter.route("/feed").get(protect, postControllers.getFeedPosts);
 postRouter.route("/like").post(protect, postControllers.likePost);
 postRouter.route("/:id").get(protect, postControllers.getPostById);

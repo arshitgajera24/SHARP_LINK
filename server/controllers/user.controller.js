@@ -405,7 +405,8 @@ export const getUserProfiles = async (req, res) => {
         const decryptedPosts = posts.map(post => ({
             ...post._doc,
             content: decryptText(post.content),
-            image_urls: post.image_urls.map(url => decryptText(url))
+            image_urls: post.image_urls.map(url => decryptText(url)),
+            video_url: decryptText(post.video_url)
         }));
 
         res.json({success: true, profile, posts: decryptedPosts, connectionStatus: connection ? connection.status : null });

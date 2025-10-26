@@ -1,5 +1,5 @@
-import React from 'react'
-import { assets, dummyUserData } from '../assets/assets'
+import { useState } from 'react'
+import { assets } from '../assets/assets'
 import { Link, useNavigate } from 'react-router-dom'
 import MenuItems from './MenuItems';
 import { CirclePlus, LogOut } from 'lucide-react';
@@ -12,6 +12,7 @@ const Sidebar = ({sidebarOpen, setSidebarOpen, counts}) => {
   const navigate = useNavigate();
   const user = useSelector((state) => state.user.value);
   const {signOut} = useClerk();
+  const [loaded, setLoaded] = useState(false);
 
   const handleSignOut = () => {
     toast.success("Logged out Successfully 👋", { duration: 3000 });
@@ -25,7 +26,7 @@ const Sidebar = ({sidebarOpen, setSidebarOpen, counts}) => {
   return (
     <div className={`w-60 xl:w-72 bg-white border-r border-gray-200 flex flex-col justify-between items-center max-sm:absolute top-0 bottom-0 z-20 ${sidebarOpen ? 'translate-x-0' : 'max-sm:-translate-x-full'} transition-all duration-300 ease-in-out`}>
       <div className='w-full'>
-        <img src={assets.link_navbar_logo_removebg} alt="Logo" onClick={() => navigate("/")} className='w-26 ml-7 my-2 cursor-pointer' />
+        <img src={assets.link_navbar_logo_removebg} alt="Logo" onClick={() => navigate("/")} className='w-26 ml-7 my-2 cursor-pointer' fetchPriority='high' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
         <hr className='border-gray-300 mb-8'/>
 
         <MenuItems setSidebarOpen={setSidebarOpen} counts={counts} />

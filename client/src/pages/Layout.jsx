@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Menu, X, MessageCircle, LogOut, Heart } from 'lucide-react';
+import { MessageCircle, Heart } from 'lucide-react';
 import { useSelector } from 'react-redux'
 import MobileBottomNav from '../components/MobileBottomNav'
 import { assets } from '../assets/assets.js';
@@ -14,10 +14,10 @@ const Layout = () => {
   const user = useSelector((state) => state.user.value);
   const {getToken} = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const pathName = location.pathname;
-  const {signOut} = useClerk();
 
   const [counts, setCounts] = useState({
     unreadMessages: 0,
@@ -50,7 +50,7 @@ const Layout = () => {
 
     useEffect(() => {
       fetchActivitySummary();
-      const interval = setInterval(fetchActivitySummary, 2000);
+      const interval = setInterval(fetchActivitySummary, 3000);
       return () => clearInterval(interval);
     }, [user, getToken])
 
@@ -66,7 +66,7 @@ const Layout = () => {
         {/* TOP BAR (mobile & tablet) */}
         <header className="w-full md:hidden flex items-center justify-between px-4 py-2 border-b bg-white">
           <div className="flex items-center gap-3">
-            <img src={assets.link_navbar_logo_removebg} alt="Logo" className="h-8 cursor-pointer" onClick={() => navigate("/")} />
+            <img src={assets.link_navbar_logo_removebg} alt="Logo" className="h-8 cursor-pointer" onClick={() => navigate("/")} fetchPriority='high' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
           </div>
 
           <div className="flex items-center gap-2">

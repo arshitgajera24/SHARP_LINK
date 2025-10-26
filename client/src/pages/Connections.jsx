@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MessageSquare, UserCheck, UserPlus, UserRoundPen, Users } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 const Connections = () => {
 
   const [currTab, setCurrTab] = useState("Followers");
+  const [loaded, setLoaded] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const {getToken} = useAuth();
@@ -180,7 +181,7 @@ const Connections = () => {
           {
             dataArray.find((item) => item.label === currTab).value.map((user) => (
               <div onClick={() => navigate(`/profile/${user._id}`)} key={user._id} className={`w-full max-w-88 flex gap-5 p-6 bg-white shadow rounded-md ${currTab === "Pending" ? "cursor-pointer" : ""}`}>
-                <img src={user.profile_picture} alt="Profile Picture" className='rounded-full w-12 h-12 shadow-md mx-auto' />
+                <img src={user.profile_picture} alt="Profile Picture" className='rounded-full w-12 h-12 shadow-md mx-auto' loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                 <div className='flex-1'>
                   <p className='font-medium text-slate-700'>{user.full_name}</p>
                   <p className='text-slate-500'>@{user.username}</p>

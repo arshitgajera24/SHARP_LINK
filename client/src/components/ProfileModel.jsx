@@ -1,5 +1,4 @@
-import React, { useState } from 'react'
-import { dummyUserData } from '../assets/assets'
+import { useState } from 'react'
 import { Pencil } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateUser } from '../features/user/userSlice.js';
@@ -9,6 +8,7 @@ import toast from 'react-hot-toast';
 const ProfileModel = ({setShowEdit}) => {
 
     const user = useSelector((state) => state.user.value);
+    const [loaded, setLoaded] = useState(false);
     const dispatch = useDispatch();
     const {getToken} = useAuth();
 
@@ -63,7 +63,7 @@ const ProfileModel = ({setShowEdit}) => {
                             Profile Picture
                             <input hidden onChange={(e) => setEditForm({...editForm, profile_picture: e.target.files[0]})} type="file" id="profile_picture" accept="image/*" className='w-full p-3 border border-grey-200 rounded-lg'/>
                             <div className='group/profile relative'>
-                                <img src={editForm.profile_picture ? URL.createObjectURL(editForm.profile_picture) : user.profile_picture} alt="Profile" className='w-24 h-24 rounded-full object-cover mt-2' />
+                                <img src={editForm.profile_picture ? URL.createObjectURL(editForm.profile_picture) : user.profile_picture} alt="Profile" className='w-24 h-24 rounded-full object-cover mt-2' loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                                 <div className='absolute hidden group-hover/profile:flex top-0 left-0 right-0 bottom-0 bg-black/20 rounded-full items-center justify-center'>
                                     <Pencil className='w-5 h-5 text-white' />
                                 </div>
@@ -77,7 +77,7 @@ const ProfileModel = ({setShowEdit}) => {
                             Cover Photo
                             <input hidden onChange={(e) => setEditForm({...editForm, cover_photo: e.target.files[0]})} type="file" id="cover_photo" accept="image/*" className='w-full p-3 border border-grey-200 rounded-lg'/>
                             <div className='group/cover relative'>
-                                <img src={editForm.cover_photo ? URL.createObjectURL(editForm.cover_photo) : user.cover_photo} alt="Cover Photo" className='xl:w-100 w-full h-40 rounded-lg bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 object-cover mt-2' />
+                                <img src={editForm.cover_photo ? URL.createObjectURL(editForm.cover_photo) : user.cover_photo} alt="Cover Photo" className='xl:w-100 w-full h-40 rounded-lg bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 object-cover mt-2' loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                                 <div className='absolute hidden group-hover/cover:flex top-0 left-0 right-0 bottom-0 bg-black/20 rounded-lg items-center justify-center'>
                                     <Pencil className='w-5 h-5 text-white' />
                                 </div>

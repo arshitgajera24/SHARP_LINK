@@ -1,5 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
-import { dummyConnectionsData } from '../assets/assets';
+import { useCallback, useEffect, useState } from 'react'
 import { Search } from 'lucide-react';
 import UserCard from '../components/UserCard';
 import Loading from '../components/Loading';
@@ -9,7 +8,6 @@ import toast from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
 import { fetchUsers } from '../features/user/userSlice.js';
 import debounce from "lodash/debounce"
-import { useNavigate } from 'react-router-dom';
 
 const Discover = () => {
 

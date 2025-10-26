@@ -1,6 +1,6 @@
 import { BadgeCheck, EllipsisVertical, Eye, Trash2, X } from 'lucide-react'
 import moment from 'moment';
-import React, { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import api from '../api/axios.js';
 import toast from 'react-hot-toast';
 import { useAuth, useUser } from '@clerk/clerk-react';
@@ -16,6 +16,7 @@ const StoryViewer = ({ viewStory, setViewStory, setSelectedStoryId = null }) => 
     const [showOptions, setShowOptions] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
     const [showViewsModal, setShowViewsModal] = useState(false);
+    const [loaded, setLoaded] = useState(false);
 
     const { user } = useUser();
     const { getToken } = useAuth();
@@ -248,7 +249,7 @@ const StoryViewer = ({ viewStory, setViewStory, setSelectedStoryId = null }) => 
         switch (currentStory.media_type) {
             case 'image':
                 return (
-                    <img src={currentStory.media_url} alt="Media" className='max-w-full max-h-screen object-contain' />
+                    <img src={currentStory.media_url} alt="Media" className='max-w-full max-h-screen object-contain' loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                 );
 
             case 'video':
@@ -296,7 +297,7 @@ const StoryViewer = ({ viewStory, setViewStory, setSelectedStoryId = null }) => 
         {/* User Info - Left part */}
         <div onClick={() => navigate(`/profile/${currentStory.user?._id}`)} className='absolute top-4 left-4 flex items-center space-x-3 p-2 px-4 sm:p-4 sm:px-8 backdrop-blur-2xl rounded bg-black/50 cursor-pointer'>
             <div className='flex items-center space-x-3'>
-                <img src={currentStory.user?.profile_picture} alt="Profile Picture" className='size-7 sm:size-8 rounded-full object-cover border border-white' />
+                <img src={currentStory.user?.profile_picture} alt="Profile Picture" className='size-7 sm:size-8 rounded-full object-cover border border-white' loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                 <div className='text-white font-medium flex items-center gap-1.5'>
                     <span>{currentStory.user?.full_name}</span>
                     <BadgeCheck size={18} />

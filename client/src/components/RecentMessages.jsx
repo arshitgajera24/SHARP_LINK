@@ -1,15 +1,14 @@
-import React, { useEffect, useState } from 'react'
-import { dummyRecentMessagesData } from '../assets/assets';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom';
 import moment from 'moment';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import api from '../api/axios.js';
 import toast from 'react-hot-toast';
-import { ArrowLeft } from 'lucide-react';
 
 const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
 
     const [messages, setMessages] = useState([]);
+    const [loaded, setLoaded] = useState(false);
     const {user} = useUser();
     const location = useLocation();
     const pathName = location.pathname;
@@ -92,7 +91,7 @@ const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
         if(user)
         {
             fetchRecentMessages();
-            const interval = setInterval(fetchRecentMessages, 30000)
+            const interval = setInterval(fetchRecentMessages, 15000)
             return () => clearInterval(interval);
         }
     }, [user])    
@@ -105,7 +104,7 @@ const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
                 messages.length > 0 ? (messages.map((message, index) => {
                     const otherUser = message.from_user_id._id === user.id ? message.to_user_id : message.from_user_id;
                     return <div onClick={async () => {await markConversationAsSeen(otherUser._id); navigate(`/messages/${otherUser._id}`);}} key={index} className='flex items-start gap-2 py-2 hover:bg-slate-100'>
-                        <img src={otherUser.profile_picture} alt="Profile Picture" className='w-8 h-8 rounded-full' />
+                        <img src={otherUser.profile_picture} alt="Profile Picture" className='w-8 h-8 rounded-full' loading='lazy' decoding='async' onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                         <div className='w-full'>
                             <div className='flex justify-between'>
                                 <p className='font-medium'>{otherUser.full_name}</p>
@@ -133,7 +132,7 @@ const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
             messages.length > 0 ? (messages.map((msg) => {
                 const otherUser = msg.from_user_id._id === user.id ? msg.to_user_id : msg.from_user_id;
                 return <div key={otherUser._id} onClick={async () => {await markConversationAsSeen(otherUser._id); onSelectUser(otherUser._id)}} className={`flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-100 transition ${selectedUserId === otherUser._id ? "bg-gray-200" : ""}`}>
-                    <img src={otherUser.profile_picture} className="w-12 h-12 rounded-full" />
+                    <img src={otherUser.profile_picture} className="w-12 h-12 rounded-full" loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                     <div className="flex-1">
                         <div className="flex justify-between">
                             <p className="font-medium">{otherUser.full_name}</p>

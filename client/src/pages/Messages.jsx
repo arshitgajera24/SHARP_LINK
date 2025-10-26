@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { useDispatch, useSelector } from 'react-redux'
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
 import { useAuth, useUser } from '@clerk/clerk-react'
 import { fetchConnections } from '../features/connections/connectionsSlice.js'
 import RecentMessages from '../components/RecentMessages.jsx'
@@ -26,7 +26,7 @@ const Messages = () => {
 
   return <div className="flex h-full bg-slate-50">
       {/* Left Panel: Recent Chats */}
-      <div className={`border-r border-gray-300 bg-white flex flex-col w-1/4 ${!userId ? 'w-full md:w-1/4 flex' : 'hidden md:flex'} max-h-screen`}>
+      <div className={`border-r border-gray-300 bg-white flex flex-col w-1/3 ${!userId ? 'w-full md:w-1/3 flex' : 'hidden md:flex'} max-h-screen`}>
         <RecentMessages selectedUserId={userId}
           onSelectUser={(id) => navigate(`/messages/${id}`)} />
       </div>

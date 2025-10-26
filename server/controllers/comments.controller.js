@@ -32,7 +32,7 @@ export const addComment = async (req, res) => {
                 from_user_id: userId,
                 message: ` Commented: "${decryptedComment.text}"`,
                 reference_id: postId,
-                reference_preview: post.image_urls[0] || null
+                reference_preview: post.video_url ? post.video_url : post.image_urls[0] || null
             });
             console.log("notification");
         }

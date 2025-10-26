@@ -1,5 +1,3 @@
-import React from 'react'
-import { dummyUserData } from '../assets/assets'
 import { MapPin, MessageCircle, Plus, UserPlus } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useAuth } from '@clerk/clerk-react';
@@ -7,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axios.js';
 import toast from 'react-hot-toast';
 import { fetchUsers } from '../features/user/userSlice.js';
+import { useState } from 'react';
 
 const UserCard = ({user}) => {
 
@@ -14,6 +13,7 @@ const UserCard = ({user}) => {
     const {getToken} = useAuth();
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const [loaded, setLoaded] = useState(false);
 
     const handleFollow = async () => {
         try {
@@ -68,7 +68,7 @@ const UserCard = ({user}) => {
   return (
     <div onClick={() => navigate(`/profile/${user._id}`)} key={user._id} className='p-4 pt-6 flex flex-col justify-between w-72 shadow border border-gray-200 rounded-md cursor-pointer'>
         <div className='text-center'>
-            <img src={user.profile_picture} alt="Profile Picture" className='rounded-full w-16 shadow-md mx-auto' />
+            <img src={user.profile_picture} alt="Profile Picture" className='rounded-full w-16 shadow-md mx-auto' loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
             <p className='mt-4 font-semibold'>{user.full_name}</p>
             {user.username && <p className='text-gray-500 font-light'>@{user.username}</p>}
             {user.bio && <p className='text-gray-600 mt-2 text-center text-sm px-4'>{user.bio}</p>}

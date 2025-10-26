@@ -1,6 +1,6 @@
 import { useAuth } from '@clerk/clerk-react';
 import { ArrowLeft, Sparkle, TextIcon, Upload } from 'lucide-react';
-import React, { useState } from 'react'
+import { useState } from 'react'
 import toast from 'react-hot-toast';
 import api from '../api/axios.js';
 
@@ -15,6 +15,7 @@ const StoryModel = ({setShowModel, fetchStories}) => {
     const [text, setText] = useState("");
     const [media, setMedia] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
+    const [loaded, setLoaded] = useState(false);
 
     const MAX_VIDEO_DURATION_SEC = 60;
     const MAX_VIDEO_SIZE_MB = 50;
@@ -124,7 +125,7 @@ const StoryModel = ({setShowModel, fetchStories}) => {
                 {
                     mode === "media" && previewUrl && (
                         media?.type.startsWith("image")
-                        ?   <img src={previewUrl} alt="Story Image" className='object-contain max-h-full' />
+                        ?   <img src={previewUrl} alt="Story Image" className='object-contain max-h-full' loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                         :   <video src={previewUrl} className='object-contain max-h-full' autoPlay loop playsInline />
                     )
                 }

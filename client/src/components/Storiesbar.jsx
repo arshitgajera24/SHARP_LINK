@@ -1,12 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Plus } from 'lucide-react';
-import moment from "moment"
 import StoryModel from './StoryModel';
 import StoryViewer from './StoryViewer';
-import { useAuth, useUser } from '@clerk/clerk-react';
+import { useAuth } from '@clerk/clerk-react';
 import api from '../api/axios.js';
 import toast from 'react-hot-toast';
-import StoryViewsModel from './StoryViewsModel.jsx';
 import { useSelector } from 'react-redux';
 
 const Storiesbar = () => {
@@ -19,6 +17,7 @@ const Storiesbar = () => {
     const [selectedStoryId, setSelectedStoryId] = useState(null);
     const [myStory, setMyStory] = useState(null);
     const [otherStories, setOtherStories] = useState([]);
+    const [loaded, setLoaded] = useState(false);
 
     const fetchStories = async () => {
         try {
@@ -101,7 +100,7 @@ const Storiesbar = () => {
                     }} >
                     <div className="relative size-20 sm:size-18 md:size-20 rounded-full p-[2px] bg-gradient-to-tr from-indigo-500 to-purple-600">
                         <div className="bg-white rounded-full size-full flex items-center justify-center relative">
-                            <img src={myStory.user.profile_picture} alt={myStory.user.full_name} className="size-14 sm:size-16 md:size-18 rounded-full object-cover border-2 border-white transition-transform duration-300 group-hover:scale-105" />
+                            <img src={myStory.user.profile_picture} alt={myStory.user.full_name} className="size-14 sm:size-16 md:size-18 rounded-full object-cover border-2 border-white transition-transform duration-300 group-hover:scale-105" loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                             <button onClick={(e) => {
                                 e.stopPropagation();
                                 setShowModel(true);
@@ -141,7 +140,7 @@ const Storiesbar = () => {
                                 boxShadow: '0 0 6px rgba(0,0,0,0.3)',
                             }} >
                             <div className="bg-white rounded-full size-full flex items-center justify-center">
-                            <img src={story.user.profile_picture} alt={story.user.full_name} className="size-14 sm:size-16 md:size-18 rounded-full object-cover border-2 border-white transition-transform duration-300 group-hover:scale-105" />
+                            <img src={story.user.profile_picture} alt={story.user.full_name} className="size-14 sm:size-16 md:size-18 rounded-full object-cover border-2 border-white transition-transform duration-300 group-hover:scale-105" loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                             </div>
                         </div>
                         <p className="text-xs sm:text-sm text-gray-700 mt-1 truncate max-w-[70px] text-center">

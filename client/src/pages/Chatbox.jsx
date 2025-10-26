@@ -1,5 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { dummyMessagesData, dummyUserData } from '../assets/assets'
+import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, Copy, EllipsisVertical, Image, Send, SendHorizonal, Trash2 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -13,9 +12,9 @@ const Chatbox = ({ selectedUserId }) => {
   const [text, setText] = useState("");
   const [image, setImage] = useState(null);
   const [user, setUser] = useState(null);
-  const lastMessageRef = useRef(null);
   const [clickedMessageId, setClickedMessageId] = useState(null);
   const [initialLoad, setInitialLoad] = useState(true);
+  const [loaded, setLoaded] = useState(false);
 
   const {messages} = useSelector((state) => state.messages);
   const userId = !selectedUserId ? useParams()?.userId : selectedUserId;
@@ -104,7 +103,7 @@ const Chatbox = ({ selectedUserId }) => {
     fetchUserMessages();
     const interval = setInterval(() => {
       fetchUserMessages();
-    }, 1000);
+    }, 3000);
 
     return () => {
       dispatch(resetMessages());
@@ -158,14 +157,13 @@ const Chatbox = ({ selectedUserId }) => {
     });
   };
 
-
   return user && (
     <div className='flex flex-col flex-1 max-h-full overflow-x-hidden'>
       <div onClick={() => navigate(`/profile/${userId}`)} className='flex items-center gap-2 p-2 md:px-10 bg-white border-b border-gray-300 sticky top-0 z-10 cursor-pointer'>
         <button onClick={(e) => {e.stopPropagation(); navigate("/messages");}}>
           <ArrowLeft className='w-6 h-6 hover:scale-110 active:scale-95 mr-2 cursor-pointer' />
         </button>
-        <img src={user.profile_picture} alt="profile Picture" className='size-8 rounded-full' />
+        <img src={user.profile_picture} alt="profile Picture" className='size-8 rounded-full' loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
         <div>
           <p className="font-medium">{user.full_name}</p>
           <p className="text-sm text-gray-500 -mt-1.5">@{user.username}</p>
@@ -183,7 +181,7 @@ const Chatbox = ({ selectedUserId }) => {
                   
                   {/* Image Message */}
                   {
-                    message.message_type === "image" && <img src={message.media_url} alt="Chat Media" className='w-full max-w-sm rounded-lg mb-1' />
+                    message.message_type === "image" && <img src={message.media_url} alt="Chat Media" className='w-full max-w-sm rounded-lg mb-1' loading='lazy' decoding='async' onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                   }
 
                   {/* Post Message */}
@@ -195,9 +193,9 @@ const Chatbox = ({ selectedUserId }) => {
                         {
                           message.post_id && message.post_id.user && (
                             <div className="flex items-center gap-2 p-3 border-b border-gray-100">
-                              <img src={message.post_id.user.profile_picture} alt="User" className="size-8 rounded-full"/>
+                              <img src={message.post_id.user.profile_picture} alt="User" className="size-8 rounded-full" loading='lazy' decoding='async' onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                               <div>
-                                <p className="font-medium text-sm">{message.post_id.user.full_name}</p>
+                                <p className="font-medium text-sm text-gray-800">{message.post_id.user.full_name}</p>
                                 <p className="text-xs text-gray-500">@{message.post_id.user.username}</p>
                               </div>
                             </div>
@@ -206,8 +204,16 @@ const Chatbox = ({ selectedUserId }) => {
 
                         {/* Post Media */}
                         {
-                          message.media_url && (
-                            <img src={message.media_url} alt="Shared Post" className="w-full object-cover max-h-80"/>
+                          message?.post_id?.video_url ? (
+                            <video src={message?.video_url} className='w-[300px] h-[300px]' ></video>
+                          ) : (
+                            <>
+                              {
+                                message.media_url && (
+                                  <img src={message.media_url} alt="Shared Post" className="w-full object-cover max-h-80" loading='lazy' decoding='async' onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}}/>
+                                )
+                              }
+                            </>
                           )
                         }
 
@@ -271,7 +277,7 @@ const Chatbox = ({ selectedUserId }) => {
                             }
                           })()}
                         </p>
-                        <button className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer border-b border-gray-200"
+                        <button className="flex items-center text-gray-800 gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer border-b border-gray-200"
                             onClick={() => {
                                 let content = "";
                                 if(message.message_type === "text") content = message.text;
@@ -284,9 +290,10 @@ const Chatbox = ({ selectedUserId }) => {
                             }}>
                           <Copy className='w-4 h-4' />Copy
                         </button>
-                        {message.to_user_id === user._id && (<button onClick={() => handleDeleteMessage(message._id)} className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-gray-100 cursor-pointer rounded-b-md">
-                          <Trash2 className='w-4 h-4' />Delete
-                        </button>
+                        {message.to_user_id === user._id && (
+                          <button onClick={() => handleDeleteMessage(message._id)} className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-gray-100 cursor-pointer rounded-b-md">
+                            <Trash2 className='w-4 h-4' />Delete
+                          </button>
                         )}
                       </div>
                     )}
@@ -309,7 +316,7 @@ const Chatbox = ({ selectedUserId }) => {
           <label htmlFor="image">
             {
               image
-              ? <img src={URL.createObjectURL(image)} alt="Image" className='h-8 rounded' />
+              ? <img src={URL.createObjectURL(image)} alt="Image" className='h-8 rounded' loading='lazy' decoding='async' onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
               : <Image className='size-7 text-gray-400 cursor-pointer' />
             }
             <input type="file" id="image" accept='image/*' hidden onChange={(e) => setImage(e.target.files[0])} />

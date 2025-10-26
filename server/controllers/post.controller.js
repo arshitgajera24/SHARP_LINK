@@ -10,9 +10,11 @@ export const addPost = async (req, res) => {
     try {
         const {userId} = req.auth();
         const {content, post_type} = req.body;
-        const images = req.files;
+        const images = req.files["images"] || [];
+        const videoFile = req.files["video"]?.[0];
 
         let image_urls = [];
+        let video_url = "";
 
         if(images.length)
         {
@@ -38,10 +40,25 @@ export const addPost = async (req, res) => {
             )
         }
 
+        if(videoFile)
+        {
+            const fileBuffer = fs.readFileSync(videoFile.path);
+            const response = await imagekit.upload({
+                file: fileBuffer,
+                fileName: videoFile.originalname,
+                folder: "posts/videos",
+            });
+            video_url = imagekit.url({
+                path: response.filePath,
+                transformation: [{ height: "360" }, { format: "mp4" }]
+            });
+        }
+
         await Post.create({
             user: userId,
             content,
             image_urls: image_urls.map(url => encryptText(url)),
+            video_url: encryptText(video_url),
             post_type
         });
 
@@ -66,6 +83,7 @@ export const getFeedPosts = async (req, res) => {
         const decryptedPosts = posts.map(post => ({
             ...post._doc,
             image_urls: (post.image_urls || []).map(url => decryptText(url.toString())),
+            video_url: decryptText(post.video_url?.toString()),
         }));
 
         res.json({success: true, posts: decryptedPosts});
@@ -104,14 +122,12 @@ export const likePost = async (req, res) => {
 
             if(post.user !== userId)
             {
-                const liker = await User.findById(userId);
-
                 await Notification.create({
                     to_user_id: post.user,
                     from_user_id: userId,
                     message: ` Liked Your Post`,
                     reference_id: postId,
-                    reference_preview: post.image_urls[0] || null
+                    reference_preview: post.video_url ? post.video_url : post.image_urls[0] || null
                 });
             }
 
@@ -137,6 +153,7 @@ export const getPostById = async (req, res) => {
         const decryptedPost = {
             ...post,
             image_urls: post.image_urls.map(url => decryptText(url.toString())),
+            video_url: decryptText(post.video_url?.toString()),
         };
 
         res.json({ success: true, post: decryptedPost });

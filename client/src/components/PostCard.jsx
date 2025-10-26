@@ -1,29 +1,36 @@
 import { BadgeCheck, EllipsisVertical, Heart, MessageCircle, Send, SendHorizonal, Trash2, X } from 'lucide-react'
 import moment from 'moment'
-import React, { useEffect, useState } from 'react'
-import { dummyUserData } from '../assets/assets';
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useAuth } from '@clerk/clerk-react';
 import api from '../api/axios.js';
 import toast from 'react-hot-toast';
 import { addMessage } from '../features/messages/messagesSlice.js';
+import { GoMute, GoUnmute } from "react-icons/go";
+import ShowHeart from './ShowHeart.jsx';
 
 const PostCard = ({post, onDelete}) => {
 
     const [likes, setLikes] = useState(post.likes_count);
     const [showHeart, setShowHeart] = useState(false);
+
     const [showComments, setShowComments] = useState(false)
     const [comments, setComments] = useState([])
     const [newComment, setNewComment] = useState("")
     const [loadingComments, setLoadingComments] = useState(false)
+
     const [showShare, setShowShare] = useState(false);
 
+    const [loaded, setLoaded] = useState(false);
     const [connectionsList, setConnectionsList] = useState([]);
     const [selectedUsers, setSelectedUsers] = useState([]);
     const [menuOpen, setMenuOpen] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [postToDelete, setPostToDelete] = useState(null);
+
+    const [muted, setMuted] = useState(false);
+    const videoRef = useRef(null);
 
     const { getToken } = useAuth();
     const navigate = useNavigate();
@@ -32,6 +39,7 @@ const PostCard = ({post, onDelete}) => {
     const connections = useSelector((state) => state.connections.connections);
     const postWithHashtags = post.content.replace(/(#\w+)/g, '<span class="text-indigo-600">$1</span>')
 
+    //* Likes handling
     const handleLike = async () => {
 
         const alreadyLiked = likes.includes(currentUser._id);
@@ -70,6 +78,7 @@ const PostCard = ({post, onDelete}) => {
         }
     }
 
+    //* Comments Handling
     const loadComments = async () => {
         try {
             const {data} = await api.get(`/api/comment/${post._id}`, {
@@ -94,7 +103,7 @@ const PostCard = ({post, onDelete}) => {
     const openComments = async () => {
         setShowComments(true);
         setLoadingComments(true);
-        loadComments();
+        await loadComments();
         setLoadingComments(false);
     }
 
@@ -115,7 +124,7 @@ const PostCard = ({post, onDelete}) => {
             if(data.success)
             {
                 toast("Comment Posted Successfully! 💭");
-                setComments(prev => [data.comments, ...prev]);
+                loadComments();
                 setNewComment("");
             }
             else
@@ -127,18 +136,33 @@ const PostCard = ({post, onDelete}) => {
         }
     }
 
-    useEffect(() => {
-        loadComments();
-    }, [comments, currentUser, post._id])
+    const handleDeleteComment = async (commentId) => {
+        if (!commentId) return;
+        const loadingId = toast.loading("Deleting...");
+        try {
+            const token = await getToken();
+            const { data } = await api.delete(`/api/comment/delete/${commentId}`, {
+                headers: { 
+                    Authorization: `Bearer ${token}` 
+                },
+            });
 
-    const toggleSelectUser = (userId) => {
-        setSelectedUsers((prev) =>
-        prev.includes(userId)
-            ? prev.filter((id) => id !== userId)
-            : [...prev, userId]
-        );
-    };
+            if (data.success) 
+            {
+                setComments(prev => prev.filter(c => c._id !== commentId));
+                toast.success(data.message, { id: loadingId });
+            }
+            else
+            {
+                toast.error(data.message, { id: loadingId });
+            }
+        } catch (error) {
+            console.log(error.message);
+            toast.error(error.message);
+        }
+    }
 
+    //* Share handling
     const handleSend = async () => {
         if (selectedUsers.length === 0) return;
 
@@ -182,31 +206,99 @@ const PostCard = ({post, onDelete}) => {
         }
     };
 
-    const handleDeleteComment = async (commentId) => {
-        if (!commentId) return;
-        const loadingId = toast.loading("Deleting...");
-        try {
-            const token = await getToken();
-            const { data } = await api.delete(`/api/comment/delete/${commentId}`, {
-                headers: { 
-                    Authorization: `Bearer ${token}` 
-                },
-            });
-
-            if (data.success) 
-            {
-                setComments(prev => prev.filter(c => c._id !== commentId));
-                toast.success(data.message, { id: loadingId });
-            }
-            else
-            {
-                toast.error(data.message, { id: loadingId });
-            }
-        } catch (error) {
-            console.log(error.message);
-            toast.error(error.message);
+    //* Video handling
+    useEffect(() => {
+        if(videoRef.current) {
+            videoRef.current.muted = muted;
         }
-    }
+    }, [muted]);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+            if(videoRef.current){
+                if(entry.isIntersecting && videoRef.current?.readyState >= 3){
+                    videoRef.current.play().catch(() => {});
+                } else {
+                    videoRef.current.pause();
+                }
+            }
+            },
+            { threshold: 0.5 }
+        );
+
+        if(videoRef.current) observer.observe(videoRef.current);
+
+        return () => {
+            if(videoRef.current) observer.unobserve(videoRef.current);
+        };
+    }, []);
+
+    useEffect(() => {
+        const handleVisibility = () => {
+            if(videoRef.current) {
+            if(document.hidden){
+                videoRef.current.pause();
+            } else {
+                videoRef.current.currentTime = 0;
+                videoRef.current.play();
+            }
+        }
+    };
+
+        document.addEventListener("visibilitychange", handleVisibility);
+        return () => document.removeEventListener("visibilitychange", handleVisibility);
+    }, []);
+
+    useEffect(() => {
+        const video = videoRef.current;
+        if(video) {
+            const playPromise = video.play();
+            if(playPromise !== undefined) {
+                playPromise
+                    .then(() => {})
+                    .catch((error) => {
+                        setMuted(true);
+                    });
+            }
+        }
+    }, [muted, post.video_url]);
+
+    useEffect(() => {
+        const video = videoRef.current;
+        if(video) {
+            video.currentTime = 0;
+            video.pause();
+
+            const playPromise = video.play();
+            if(playPromise !== undefined) {
+                playPromise.catch(() => video.muted = true);
+            }
+        }
+    }, [post.video_url]);
+
+    const handleVideoClick = () => {
+        if (videoRef.current) {
+            if (videoRef.current.paused) {
+                videoRef.current.play();
+            } else {
+                videoRef.current.pause();
+            }
+        }
+    };
+    //* Video Handling over
+
+    useEffect(() => {
+        loadComments();
+    }, [showComments, currentUser, post._id]);
+
+    const toggleSelectUser = (userId) => {
+        setSelectedUsers((prev) =>
+        prev.includes(userId)
+            ? prev.filter((id) => id !== userId)
+            : [...prev, userId]
+        );
+    };
 
     useEffect(() => {
         if (currentUser) {
@@ -221,7 +313,7 @@ const PostCard = ({post, onDelete}) => {
         {/* User Info */}
         <div className="flex items-center justify-between">
             <div onClick={() => navigate(`/profile/${post.user._id}`)} className='flex items-center gap-3 cursor-pointer'>
-                <img src={post.user.profile_picture} alt="Profile Picture" className='w-10 h-10 rounded-full shadow' />
+                <img src={post.user.profile_picture} alt="Profile Picture" className='w-10 h-10 rounded-full shadow' loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                 <div>
                     <div className='flex items-center space-x-1'>
                         <span>{post.user.full_name}</span>
@@ -301,32 +393,33 @@ const PostCard = ({post, onDelete}) => {
             post.content && <div className='text-gray-800 text-sm whitespace-pre-line' dangerouslySetInnerHTML={{__html: postWithHashtags}} />
         }
 
-        {/* Images */}
-        <div className='relative grid grid-cols-2 gap-2' onDoubleClick={handleLike}>
-            {
-                post.image_urls.map((img, index) => (
-                    <img src={img} key={index} alt="Post Images" className={`w-full h-48 object-cover rounded-lg ${post.image_urls.length === 1 && "col-span-2 h-auto"}`} />
-                ))
-            }
-
-            {/* Heart Animation */}
-            {
-                showHeart && (
-                    <div className='absolute inset-0 flex items-center justify-center pointer-events-none'>
-                        <svg className='w-24 h-24 animate-heart-pop' viewBox="0 0 24 24">
-                        <defs>
-                            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style={{stopColor:'#ec4899', stopOpacity:1}} />
-                            <stop offset="50%" style={{stopColor:'#ef4444', stopOpacity:1}} />
-                            <stop offset="100%" style={{stopColor:'#8b5cf6', stopOpacity:1}} />
-                            </linearGradient>
-                        </defs>
-                        <path fill="url(#grad1)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                        </svg>
-                    </div>
-                )
-            }
-        </div>
+        {/* Media */}
+        {
+            post.video_url ? (
+                <div className="relative w-full h-[500px] overflow-hidden rounded-lg mt-2">
+                    <video ref={videoRef} src={post.video_url} autoPlay loop className="w-full h-full" onClick={handleVideoClick} onDoubleClick={handleLike}></video>
+                    <button onClick={() => setMuted(!muted)} className="absolute bottom-2 right-2 bg-black/50 p-2 rounded-full text-white cursor-pointer" >
+                        {muted ? <GoMute /> : <GoUnmute />}
+                    </button>
+                    {
+                        showHeart && <ShowHeart />
+                    }
+                </div>
+            ) : (
+                <div className='relative grid grid-cols-2 gap-2' onDoubleClick={handleLike}>
+                    {
+                        post.image_urls.map((img, index) => (
+                            <img src={img} key={index} alt="Post Images" className={`w-full h-48 object-cover rounded-lg ${post.image_urls.length === 1 && "col-span-2 h-auto"}`} loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
+                        ))
+                    }
+            
+                    {/* Heart Animation */}
+                    {
+                        showHeart && <ShowHeart />
+                    }
+                </div>
+            )
+        }
 
         {/* Actions */}
         <div className='flex items-center gap-4 text-gray-600 text-sm pt-2 border-t border-gray-300'>
@@ -367,7 +460,7 @@ const PostCard = ({post, onDelete}) => {
                                     ?   (
                                         comments.map((comment, index) => (
                                             <div key={comment?._id || index} className='flex gap-3 items-start'>
-                                                <img onClick={() => navigate(`/profile/${comment?.user?._id}`)} src={comment?.user?.profile_picture} alt="User" className='w-9 h-9 rounded-full cursor-pointer' />
+                                                <img onClick={() => navigate(`/profile/${comment?.user?._id}`)} src={comment?.user?.profile_picture} alt="User" className='w-9 h-9 rounded-full cursor-pointer' loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                                                 <div className='flex-1'>
                                                     <div onClick={() => navigate(`/profile/${comment?.user?._id}`)} className='flex items-center gap-2 cursor-pointer'>
                                                         <span className='font-semibold text-sm'>{comment?.user?.full_name}</span>
@@ -417,7 +510,7 @@ const PostCard = ({post, onDelete}) => {
                                 ?   (
                                     connectionsList.map((u) => (
                                         <div key={u._id} onClick={() => toggleSelectUser(u._id)} className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-gray-100 ${selectedUsers.includes(u._id) ? "bg-indigo-50" : "" }`}>
-                                            <img src={u.profile_picture} alt="profile" className="w-10 h-10 rounded-full"/>
+                                            <img src={u.profile_picture} alt="profile" className="w-10 h-10 rounded-full" loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                                             <div className="flex-1">
                                                 <p className="font-medium">{u.full_name}</p>
                                                 <p className="text-sm text-gray-500">@{u.username}</p>

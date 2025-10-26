@@ -1,21 +1,24 @@
-import React from 'react'
+import { useState } from 'react'
 import { assets } from '../assets/assets.js'
 import { Star } from 'lucide-react'
 import {SignIn} from "@clerk/clerk-react"
 
 const Login = () => {
+
+  const [loaded, setLoaded] = useState(false);
+
   return (
     <div className='min-h-screen flex flex-col md:flex-row'>
       
       {/* Backgrounf Image */}
-      <img src={assets.bgImage} alt="Bg Image" className='absolute top-0 left-0 -z-1 w-full h-full object-cover'/>
+      <img src={assets.bgImage} alt="Bg Image" className='absolute top-0 left-0 -z-1 w-full h-full object-cover' fetchPriority='high' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}}/>
 
       {/* Left Side */}
       <div className='flex-1 flex flex-col xl:items-start items-center justify-between p-6 md:p-10 lg:pl-40'>
-        <img src={assets.link_navbar_logo_removebg} alt="Logo" className='h-12 object-contain' />
+        <img src={assets.link_navbar_logo_removebg} alt="Logo" className='h-12 object-contain' fetchPriority='high' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
         <div>
           <div className='flex items-center gap-3 mb-4 max-md:mt-10'>
-            <img src={assets.group_users} alt="Group Users" className='h-8 md:h-10' />
+            <img src={assets.group_users} alt="Group Users" className='h-8 md:h-10' fetchPriority='high' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
             <div>
               <div className='flex'>
                 {

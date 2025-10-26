@@ -108,7 +108,7 @@ export const sendMessage = async (req, res) => {
         const decryptedMessage = {
             ...message._doc,
             text: decryptText(message.text),
-            media_url: decryptText(message.media_url)
+            media_url: decryptText(message.media_url),
         };
 
         res.json({success: true, message: decryptedMessage});
@@ -123,7 +123,7 @@ export const sendMessage = async (req, res) => {
             const decryptedForReceiver = {
                 ...messageWithUserData._doc,
                 text: decryptText(messageWithUserData.text),
-                media_url: decryptText(messageWithUserData.media_url)
+                media_url: decryptText(messageWithUserData.media_url),
             };
             connections[to_user_id].write(`data: ${JSON.stringify({ type: "newMessage", message: decryptedForReceiver })}\n\n`);
         }
@@ -150,9 +150,10 @@ export const getChatMessages = async (req, res) => {
         const decryptedMessages = messages.map(msg => ({
             ...msg._doc,
             text: decryptText(msg.text),
-            media_url: decryptText(msg.media_url)
+            media_url: decryptText(msg.media_url),
+            video_url: decryptText(msg?.post_id?.video_url)
         }));
-
+        
         //! Mark Messages as Seen
         const messagesToMark = await Message.find({from_user_id: to_user_id, to_user_id: userId, seen: false});
         const messageIds = messagesToMark.map(msg => msg._id);

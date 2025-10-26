@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { assets, dummyPostsData } from '../assets/assets';
+import { useEffect, useState } from 'react'
+import { assets } from '../assets/assets';
 import Loading from '../components/Loading';
 import Storiesbar from '../components/Storiesbar';
 import PostCard from '../components/PostCard';
@@ -12,6 +12,7 @@ const Feed = () => {
 
   const [feeds, setFeeds] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loaded, setLoaded] = useState(false);
   const {getToken} = useAuth();
 
   const fetchFeeds = async () => {
@@ -64,7 +65,7 @@ const Feed = () => {
       <div className='max-xl:hidden sticky top-0'>
         <div className='max-w-xs bg-white text-xs p-4 rounded-md inline-flex flex-col gap-2 shadow'>
           <h3 className='text-slate-800 font-semibold'>Sponsored</h3>
-          <img src={assets.sponsored_img} alt="Sponsored Image" className='w-75 h-50 rounded-md' />
+          <img src={assets.sponsored_img} alt="Sponsored Image" className='w-75 h-50 rounded-md' fetchPriority='high' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
           <p className='text-slate-600'>Email Marketing</p>
           <p className='text-slate-400'>Supercharge Your Marketing with a Powerful, Easy-to-Use Platform Built for Results.</p>
         </div>

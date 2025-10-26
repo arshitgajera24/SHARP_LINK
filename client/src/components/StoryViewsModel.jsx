@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/clerk-react';
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import api from '../api/axios.js';
 import toast from 'react-hot-toast';
 import { X } from 'lucide-react';
@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 const StoryViewsModel = ({ storyId, onClose }) => {
 
     const [viewers, setViewers] = useState([]);
+    const [loaded, setLoaded] = useState(false);
     const { getToken } = useAuth();
     const navigate = useNavigate();
 
@@ -48,7 +49,7 @@ const StoryViewsModel = ({ storyId, onClose }) => {
                     ?   (
                         viewers.map((view, index) => (
                             <div onClick={() => navigate(`/profile/${view.user._id}`)} key={index} className="flex items-center gap-3 mb-3 cursor-pointer">
-                                <img src={view.user.profile_picture} alt={view.user.full_name} className="w-10 h-10 rounded-full object-cover"/>
+                                <img src={view.user.profile_picture} alt={view.user.full_name} className="w-10 h-10 rounded-full object-cover" loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                                 <div className="flex flex-col">
                                     <span className="font-medium">{view.user.full_name}</span>
                                     <span className="text-sm text-gray-500">

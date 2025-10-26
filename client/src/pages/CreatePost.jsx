@@ -1,5 +1,4 @@
-import React, { useState } from 'react'
-import { dummyUserData } from '../assets/assets';
+import { useRef, useState } from 'react'
 import { Image, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useSelector } from 'react-redux';
@@ -12,7 +11,10 @@ const CreatePost = () => {
   const navigate = useNavigate();
   const [content, setContent] = useState("");
   const [images, setImages] = useState([]);
+  const [video, setVideo] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const mediaInputRef = useRef(null);
 
   const user = useSelector((state) => state.user.value);
   const {getToken} = useAuth();
@@ -25,11 +27,12 @@ const CreatePost = () => {
     }
     setLoading(true);
 
-    const postType = images.length && content ? "text_with_image" : images.length ? "image" : "text";
+    const postType = video && content ? "text_with_video" : video ? "video" : images.length && content ? "text_with_image" : images.length ? "image" : "text";
 
       const formData = new FormData();
       formData.append("content", content);
       formData.append("post_type", postType);
+      if(video) formData.append("video", video);
       images.map((image) => {
         formData.append("images", image);
       })
@@ -54,8 +57,8 @@ const CreatePost = () => {
         })(),
         {
           loading: "Uploading...", 
-          success: <p>✅ Post Uploaded Successfully</p>, 
-          error: <p>❌ Post Uploading Failed</p>
+          success: <p>Post Uploaded Successfully</p>, 
+          error: <p>Post Uploading Failed</p>
         }
       )
 
@@ -78,7 +81,7 @@ const CreatePost = () => {
         <div className='max-w-xl bg-white p-4 sm:p-8 sm:pb-3 rounded-xl shadow-md space-y-4'>
           {/* Header */}
           <div className='flex items-center gap-3'>
-            <img src={user.profile_picture} alt="Profile Picture" className='w-12 h-12 rounded-full shadow' />
+            <img src={user.profile_picture} alt="Profile Picture" className='w-12 h-12 rounded-full shadow' loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
             <div>
               <h2 className='font-semibold'>{user.full_name}</h2>
               <p className='text-sm text-gray-500'>@{user.username}</p>
@@ -90,36 +93,70 @@ const CreatePost = () => {
 
           {/* Images */}
           {
-            images.length > 0 && <div className='flex flex-wrap gap-2 mt-4'>
-              {
-                images.map((image, index) => (
-                  <div key={index} className='relative group'>
-                    <img src={URL.createObjectURL(image)} alt="Posting Image" className='h-20 rounded-md' />
-                    <div onClick={() => setImages(images.filter((_, i) => i !== index))} className='absolute hidden group-hover:flex justify-center items-center top-0 right-0 bottom-0 left-0 bg-black/40 rounded-md cursor-pointer'>
-                      <X className='w-6 h-6 text-white'/>
+            video ? (
+              <div className='relative group'>
+                <video autoPlay loop className='w-full rounded-md mt-4'>
+                  <source src={URL.createObjectURL(video)} type={video.type} />
+                  Your browser does not support the video tag.
+                </video>
+                <div onClick={() => {setVideo(null); if(mediaInputRef.current) mediaInputRef.current.value = null;}} className='absolute hidden group-hover:flex justify-center items-center top-0 right-0 bottom-0 left-0 bg-black/40 rounded-md cursor-pointer'>
+                  <X className='w-6 h-6 text-white'/>
+                </div>
+              </div>
+            ) : (
+              images.length > 0 && (
+                <div className='flex flex-wrap gap-2 mt-4'>
+                {
+                  images.map((image, index) => (
+                    <div key={index} className='relative group'>
+                      <img src={URL.createObjectURL(image)} alt="Posting Image" className='h-20 rounded-md' loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
+                      <div onClick={() => {setImages(images.filter((_, i) => i !== index)); if(mediaInputRef.current) mediaInputRef.current.value = null;}} className='absolute hidden group-hover:flex justify-center items-center top-0 right-0 bottom-0 left-0 bg-black/40 rounded-md cursor-pointer'>
+                        <X className='w-6 h-6 text-white'/>
+                      </div>
                     </div>
-                  </div>
-                ))
-              }
-            </div>
+                  ))
+                }
+                </div>
+              )
+            )
           }
 
           {/* Bottom Bar */}
           <div className='flex items-center justify-between pt-3 border-t border-gray-300'>
-            <label htmlFor="images" className='flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition cursor-pointer'>
+            <label htmlFor="media" className='flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition cursor-pointer'>
               <Image className='size-6' />
             </label>
-            <input type="file" id="images" accept='image/*' hidden multiple onChange={(e) => {
-              const selectedFiles = Array.from(e.target.files);
-              const totalFiles = images.length + selectedFiles.length;
+            <input type="file" id="media" accept='image/*,video/*' ref={mediaInputRef} hidden multiple onChange={(e) => {
+                const selectedFiles = Array.from(e.target.files);
+                const videoFile = selectedFiles.find(f => f.type.startsWith("video/"));
 
-              if(totalFiles > 4)
-              {
-                toast.error("You can upload a maximum of 4 images per post");
-                return;
+                if(videoFile) {
+                  setVideo(videoFile);
+                  setImages([]);
+                }
+                else
+                {
+                  const totalFiles = images.length + selectedFiles.length;
+
+                  if(totalFiles > 4)
+                  {
+                    toast.error("You can upload a maximum of 4 images per post");
+                    return;
+                  }
+                  setImages([...images, ...selectedFiles]);
+                  setVideo(null)
+                }                
               }
-              setImages([...images, ...e.target.files])}
+              
             }/>
+            <input type="file" id="images" accept='video/*' hidden onChange={(e) => {
+              const file = e.target.files[0];
+              if(file)
+              {
+                setImages([]);
+                setVideo(file);
+              }
+            }} />
             <button disabled={loading} onClick={handleSubmit} className='text-sm bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 active:scale-95 transition text-white fron-medium px-8 py-2 rounded-md cursor-pointer'>
               Publish Post
             </button>

@@ -1,5 +1,5 @@
 import { useAuth, useUser } from '@clerk/clerk-react';
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import api from '../api/axios.js';
 import toast from 'react-hot-toast';
 import Loading from '../components/Loading.jsx';
@@ -13,6 +13,7 @@ const Notifications = () => {
     const { getToken } = useAuth();
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [loaded, setLoaded] = useState(false);
     const navigate = useNavigate();
 
     const fetchAllNotifications = async () => {
@@ -85,15 +86,16 @@ const Notifications = () => {
             {
                 notifications.map((n) => {
                     const fromUser = n.from_user_id;
+                    const isVideo = n.reference_preview && n.reference_preview.match(/\.(mp4|mov|webm|avi)$/i);
 
                     return (
-                        <div onClick={() => navigate(n.reference_id ? `/post/${n.reference_id}` : `/profile/${fromUser._id}`)} key={n._id} className="flex items-center justify-between p-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition cursor-pointer">
+                        <div onClick={() => navigate(n.reference_id ? `/post/${n.reference_id}` : `/profile/${fromUser._id}`)} key={n._id} className="flex items-center justify-between md:p-2 p-1 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition cursor-pointer">
                             
-                            <div className="flex items-center gap-3 justify-center">
-                                <img onClick={(e) => {e.stopPropagation(); navigate(`/profile/${fromUser._id}`);}} src={fromUser.profile_picture || "/link_tab_icon-removebg.webp"} alt={fromUser.username} className="w-10 h-10 rounded-full object-cover mt-1 cursor-pointer" />
+                            <div className="flex items-center md:gap-3 gap-2 justify-center">
+                                <img onClick={(e) => {e.stopPropagation(); navigate(`/profile/${fromUser._id}`);}} src={fromUser.profile_picture || "/link_tab_icon-removebg.webp"} alt={fromUser.username} className="w-10 h-10 rounded-full object-cover mt-1 cursor-pointer" loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                             
                                 <div className="flex flex-col justify-between">
-                                    <div className="flex gap-1">
+                                    <div className="gap-1 sm:flex">
                                         <span onClick={(e) => {e.stopPropagation(); navigate(`/profile/${fromUser._id}`);}} className="font-semibold text-sm cursor-pointer">@{fromUser.username}</span>
                                         <p className="text-sm">{n.message}</p>
                                     </div>
@@ -103,7 +105,11 @@ const Notifications = () => {
                             <div className='flex gap-1'>
                                 {
                                     n.reference_preview && (
-                                        <img src={n.reference_preview} alt="post-preview" className="w-10 h-10 object-cover rounded ml-4" />
+                                        isVideo ? (
+                                            <video src={n.reference_preview} className="w-10 h-10 object-cover rounded ml-4" muted playsInline preload="metadata" onLoadedData={(e) => e.target.currentTime = 0.1}/>
+                                        ) : (
+                                            <img src={n.reference_preview} alt="post-preview" className="w-10 h-10 object-cover rounded ml-4" loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
+                                        )
                                     )
                                 }
                                 <button onClick={(e) => { e.stopPropagation(); handleDeleteNotification(n._id) }} className="p-2 rounded-full hover:bg-gray-100 text-red-600 cursor-pointer" title="Delete comment">

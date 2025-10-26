@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/clerk-react';
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api/axios.js';
@@ -27,7 +27,7 @@ const PostPage = () => {
                 
             if (data.success)
             {
-                setPost(data.post);
+                setPost(data.post);                
             } 
             else 
             {

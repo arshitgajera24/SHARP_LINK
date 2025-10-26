@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import Loading from '../components/Loading';
 import UserProfileInfo from '../components/UserProfileInfo';
@@ -22,7 +22,8 @@ const Profile = () => {
   const [posts, setPosts] = useState([]);
   const [activeTab, setActiveTab] = useState("Posts");
   const [showEdit, setShowEdit] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(user?.followers?.includes(currentUser) ? false : true);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState(null);
   const [userConnections, setUserConnections] = useState([]);
   const dispatch = useDispatch();
@@ -159,8 +160,8 @@ const Profile = () => {
       fetchUserConnections(currentUser._id);
     }
 
-    if (profileId && currentUser) {
-      setIsFollowing(currentUser.following.includes(profileId));
+    if (profileId) {
+      setIsFollowing(currentUser?.following?.includes(profileId));
     }
   }, [profileId, currentUser])
 
@@ -174,7 +175,7 @@ const Profile = () => {
           {/* Cover Photo */}
           <div className='h-40 md:h-56 bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200'>
             {
-              user.cover_photo && <img src={user.cover_photo} alt="Cover Photo" className='w-full h-full object-cover' />
+              user.cover_photo && <img src={user.cover_photo} alt="Cover Photo" className='w-full h-full object-cover' loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
             }
           </div>
 
@@ -243,7 +244,7 @@ const Profile = () => {
                       {
                         post.image_urls.map((image, index) => (
                           <Link target="_blank" to={image} key={index} className='relative group'>
-                            <img key={index} src={image} alt="Image" className='w-64 aspect-video object-cover' />
+                            <img key={index} src={image} alt="Image" className='w-64 aspect-video object-cover' loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                             <p className='absolute bottom-0 right-0 text-xs p-1 px-3 backdrop-blur-xl text-white opacity-0 group-hover:opacity-100 transition duration-300'>Posted {moment(post.createdAt).fromNow()}</p>
                           </Link>
                         ))
@@ -271,7 +272,7 @@ const Profile = () => {
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                       {userConnections.map((connection) => (
                         <div key={connection._id} onClick={() => navigate(`/profile/${connection._id}`)} className="flex flex-col items-center p-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl shadow hover:shadow-md hover:-translate-y-1 transition cursor-pointer border border-indigo-100">
-                          <img src={connection.profile_picture || "/default-avatar.png"}alt={connection.full_name}className="w-14 h-14 rounded-full object-cover border border-purple-200 mb-2" />
+                          <img src={connection.profile_picture || "/default-avatar.png"}alt={connection.full_name}className="w-14 h-14 rounded-full object-cover border border-purple-200 mb-2" loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                           <p className="text-sm font-semibold text-gray-800 text-center truncate w-full">{connection.full_name}</p>
                           {
                             connection.username && (
