@@ -36,23 +36,9 @@ const CreatePost = () => {
             fileName: file.name,
             folder: file.type.startsWith("video/") ? "posts/videos" : "posts",
             ...authParams,
-            transformation: [{
-              pre: file.type.startsWith("video/") ? "video" : "image",
-              transformation: [
-                {
-                  type: file.type.startsWith("video/") ? "video" : "image",
-                  ...(file.type.startsWith("video/")
-                    ? {
-                        height: "360",
-                        format: "mp4",
-                      }
-                    : {
-                        width: "1280",
-                        format: "webp",
-                      }),
-                }
-              ]
-            }]
+            tags: [file.type.startsWith("video/") ? "video" : "image"],
+            useUniqueFileName: true,
+            responseFields: ["tags", "url", "fileId", "height", "width"],
           },
           (err, result) => {
             if (err) 
@@ -62,7 +48,15 @@ const CreatePost = () => {
             }
             else {
               console.log('ImageKit Upload Success:', result);
-              resolve(result.url);
+              let optimizedUrl = result.url;
+              
+              if (file.type.startsWith("video/")) {
+                optimizedUrl += "?tr=h-360,q-60,f-auto";
+              } else {
+                optimizedUrl += "?tr=w-1280,f-webp,q-80";
+              }
+              
+              resolve(optimizedUrl);
             }
           }
         );

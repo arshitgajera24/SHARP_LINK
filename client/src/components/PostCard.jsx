@@ -397,7 +397,7 @@ const PostCard = ({post, onDelete}) => {
         {
             post.video_url ? (
                 <div className="relative w-full h-[500px] overflow-hidden rounded-lg mt-2">
-                    <video ref={videoRef} src={post.video_url} autoPlay loop className="w-full h-full" preload="metadata" onClick={handleVideoClick} onDoubleClick={handleLike}></video>
+                    <video  ref={videoRef} src={post.video_url} autoPlay loop playsInline className="w-full h-full" preload="metadata" onClick={handleVideoClick} onDoubleClick={handleLike} poster={`${post.video_url.split('?')[0]}?tr=h-360,b-5`} ></video>
                     <button onClick={() => setMuted(!muted)} className="absolute bottom-2 right-2 bg-black/50 p-2 rounded-full text-white cursor-pointer" >
                         {muted ? <GoMute /> : <GoUnmute />}
                     </button>
