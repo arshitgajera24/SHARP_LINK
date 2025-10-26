@@ -78,7 +78,7 @@ const CreatePost = () => {
         </div>
 
         {/* Form */}
-        <div className='max-w-xl bg-white p-4 sm:p-8 sm:pb-3 rounded-xl shadow-md space-y-4'>
+        <div className='max-w-xl bg-white p-4 sm:p-8 sm:pb-3 rounded-xl shadow-md space-y-4 mb-12'>
           {/* Header */}
           <div className='flex items-center gap-3'>
             <img src={user.profile_picture} alt="Profile Picture" className='w-12 h-12 rounded-full shadow' loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
