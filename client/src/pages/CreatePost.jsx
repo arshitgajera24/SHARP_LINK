@@ -37,16 +37,20 @@ const CreatePost = () => {
             folder: file.type.startsWith("video/") ? "posts/videos" : "posts",
             ...authParams,
             transformation: file.type.startsWith("video/")
-              ? [
-                  { height: "360" },
-                  { format: "mp4" },
-                  { quality: "auto" }
-                ]
-              : [
-                  { width: "1280" },
-                  { format: "webp" },
-                  { quality: "auto" }
-                ]
+              ? [{
+                  height: "360",
+                  format: "mp4",
+                  quality: "auto",
+                  // Video transformations require either pre or post
+                  pre: "video"
+                }]
+              : [{
+                  width: "1280",
+                  format: "webp",
+                  quality: "auto",
+                  // Image transformations require either pre or post
+                  pre: "image"
+                }]
           },
           (err, result) => {
             if (err) 
