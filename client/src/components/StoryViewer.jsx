@@ -280,7 +280,7 @@ const StoryViewer = ({ viewStory, setViewStory, setSelectedStoryId = null }) => 
     }, [renderContent])
 
   return (
-    <div onClick={handleClick} onMouseDown={handleMouseDown} onMouseUp={handleMouseUp} onTouchStart={handleMouseDown} onTouchEnd={handleMouseUp} className='fixed inset-0 h-screen bg-black bg-opacity-90 z-110 flex items-center justify-center' style={{backgroundColor: currentStory.media_type === "text" ? currentStory.background_color : "#000000"}}>
+    <div onClick={handleClick} onMouseDown={handleMouseDown} onMouseUp={handleMouseUp} onTouchStart={handleMouseDown} onTouchEnd={handleMouseUp} className='fixed inset-0 h-full bg-black bg-opacity-90 z-110 flex items-center justify-center' style={{backgroundColor: currentStory.media_type === "text" ? currentStory.background_color : "#000000"}}>
       
         {/* Progress Bar */}
         <div className='absolute top-1 left-0 right-0 flex gap-2'>
