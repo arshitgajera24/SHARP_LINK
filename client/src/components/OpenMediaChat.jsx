@@ -6,7 +6,7 @@ const OpenMediaChat = ({setShowMedia, showMedia}) => {
     const [loaded, setLoaded] = useState(false);
 
   return (
-    <div className='fixed inset-0 z-110 min-h-screen bg-black/50 backdrop-blur text-white flex items-center justify-center p-4'>
+    <div className='fixed inset-0 z-110 min-h-screen bg-black/50 backdrop-blur text-white flex items-center justify-center p-4 -mt-14 md:-mt-0'>
         <div className='w-full max-w-md'>
             <div className='text-center mb-4 flex items-center justify-between'>
                 <button onClick={() => setShowMedia(null)} className='text-white p-2 cursor-pointer'>

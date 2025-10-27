@@ -150,7 +150,7 @@ const Connections = () => {
     const isMobile = window.innerWidth < 768;
     
     if (isMobile) {
-      navigate(`/messages`);
+      navigate('/messages', { state: { fromProfileChat: true } });
       dispatch(openChatWithUser(userId));
     } else {
       dispatch(openChatWithUser(userId));

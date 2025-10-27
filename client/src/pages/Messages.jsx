@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { useAuth, useUser } from '@clerk/clerk-react'
 import { fetchConnections } from '../features/connections/connectionsSlice.js'
@@ -12,13 +12,21 @@ const Messages = () => {
   const { user } = useUser();
   const { getToken } = useAuth();
   const dispatch = useDispatch();
-  const navigate = useNavigate();
+  const location = useLocation();
 
   const { open, selectedUserId } = useSelector((state) => state.chatUI);
 
   useEffect(() => {
     getToken().then((token) => dispatch(fetchConnections(token)));
   }, [user]);
+
+  useEffect(() => {
+    if (!location.state?.fromProfileChat) {
+      dispatch(closeChat());
+    }
+
+    window.history.replaceState({}, document.title);
+  }, [dispatch]);
 
   return <div className="flex h-full bg-slate-50">
       {/* Left Panel: Recent Chats */}

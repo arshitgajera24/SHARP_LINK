@@ -5,7 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
 import api from '../api/axios.js';
 import toast from 'react-hot-toast';
-import { addMessage, fetchMessages, resetMessages } from '../features/messages/messagesSlice.js';
+import { addMessage, deleteMessage, fetchMessages, forceRefreshMessages, resetMessages, setMessages } from '../features/messages/messagesSlice.js';
 import OpenMediaChat from '../components/OpenMediaChat.jsx';
 import { closeChat, setChatLoaded } from '../features/chat/chatUISlice.js';
 
@@ -32,6 +32,8 @@ const Chatbox = ({ selectedUserId, onBack }) => {
   const connections = useSelector((state) => state.connections.connections);
 
   const sendMessage = async () => {
+    setText("")
+    setImage(null);
     try {
       if(!text && !image) return;
 
@@ -50,8 +52,6 @@ const Chatbox = ({ selectedUserId, onBack }) => {
 
       if(data.success)
       {
-        setText("")
-        setImage(null);
         dispatch(addMessage(data.message))
       }
       else
@@ -76,7 +76,12 @@ const Chatbox = ({ selectedUserId, onBack }) => {
         if(data.success)
         {
             toast.success(`${data.message} 💨`, { id: toastId });
-            dispatch(fetchMessages({ token, messageId }));
+            dispatch(deleteMessage({
+              messageId,
+              from_user_id: currentUser._id,
+              to_user_id: userId,
+              currentUserId: currentUser._id
+            }));
             setClickedMessageId(null);
         }
         else
@@ -98,7 +103,6 @@ const Chatbox = ({ selectedUserId, onBack }) => {
 
   useEffect(() => {
     if (!userId) return;
-    dispatch(resetMessages());
     setIsLoading(true);
 
     const fetchAndSet = async () => {
@@ -113,14 +117,8 @@ const Chatbox = ({ selectedUserId, onBack }) => {
       }
     };
 
+    dispatch(forceRefreshMessages());
     fetchAndSet();
-
-    const interval = setInterval(() => fetchAndSet(), 3000);
-
-    return () => {
-      clearInterval(interval);
-      if (initialLoad) dispatch(resetMessages());
-    }
   }, [userId]);
 
   const isUserNearBottom = () => {
@@ -211,7 +209,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
               messages.toSorted((a,b) => new Date(a.createdAt) - new Date(b.createdAt)).map((message, index) => {
                 const sentByCurrentUser = message.from_user_id === currentUser._id;
                 
-                return <div key={index} id={`message-${message._id}`} className={`flex flex-col relative ${message.to_user_id !== user._id ? "items-start" : "items-end"}`}>
+                return <div key={index} id={`message-${message._id}`} className={`flex flex-col relative transition-all ${message.isDeleting ? "fade-out" : ""} ${message.to_user_id !== user._id ? "items-start" : "items-end"}`}>
                   <div className={`p-2 text-sm max-w-xs rounded-lg shadow ${message.to_user_id !== user._id ? "rounded-bl-none bg-gradient-to-l from-violet-50 to-indigo-100" : "rounded-br-none bg-gradient-to-r from-indigo-500 to-purple-700 text-white"}`}>
                     
                     {/* Image Message */}

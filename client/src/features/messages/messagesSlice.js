@@ -8,7 +8,7 @@ const initialState = {
 
 export const fetchMessages = createAsyncThunk("messages/fetchMessages", async ({token, userId}, {getState}) => {
     const existing = getState().messages.cache[userId];
-    if(existing)
+    if(existing && !getState().messages.forceRefresh) 
     {
         return { fromCache: true, userId, messages: existing };
     }
@@ -56,6 +56,21 @@ const messagesSlice = createSlice({
             state.messages = [];
             state.cache = {};
         },
+        deleteMessage: (state, action) => {
+            const { messageId, from_user_id, to_user_id, currentUserId } = action.payload;
+            state.messages = state.messages.filter(msg => msg._id !== messageId);
+
+            const otherUserId = from_user_id === currentUserId ? to_user_id : from_user_id;
+
+            Object.keys(state.cache).forEach(uid => {
+                if (uid === otherUserId || uid === from_user_id || uid === to_user_id) {
+                state.cache[uid] = state.cache[uid].filter(msg => msg._id !== messageId);
+                }
+            });
+        },
+        forceRefreshMessages: (state) => {
+            state.forceRefresh = !state.forceRefresh;
+        }
     },
     extraReducers: (builder) => {
         builder.addCase(fetchMessages.fulfilled, (state, action) => {
@@ -63,9 +78,11 @@ const messagesSlice = createSlice({
             {
                 const { userId, messages, fromCache } = action.payload;
 
-                state.messages = messages;
-                if(!fromCache)
-                {
+                state.messages = [...messages].sort(
+                    (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+                );
+
+                if (!fromCache) {
                     state.cache[userId] = messages;
                 }
             }
@@ -73,5 +90,5 @@ const messagesSlice = createSlice({
     }
 })
 
-export const {sendMessages, addMessage, markMessageSeen, resetMessages} = messagesSlice.actions;
+export const {setMessages, addMessage, markMessageSeen, resetMessages, deleteMessage, forceRefreshMessages} = messagesSlice.actions;
 export default messagesSlice.reducer

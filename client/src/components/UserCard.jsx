@@ -44,7 +44,7 @@ const UserCard = ({user}) => {
             const isMobile = window.innerWidth < 768;
             
             if (isMobile) {
-                navigate(`/messages`);
+                navigate('/messages', { state: { fromProfileChat: true } });
                 dispatch(openChatWithUser(user._id));
             } else {
                 dispatch(openChatWithUser(user._id));

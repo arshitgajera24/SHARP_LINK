@@ -39,10 +39,10 @@ const Notification = ({t, message}) => {
                 {
                     const isMobile = window.innerWidth < 768;
                     if (isMobile) {
-                        navigate(`/messages`);
-                        dispatch(openChatWithUser(message.from_user_id._id));
+                        navigate('/messages', { state: { fromProfileChat: true } });
+                        dispatch(openChatWithUser(message?.from_user_id?._id));
                     } else {
-                        dispatch(openChatWithUser(message.from_user_id._id));
+                        dispatch(openChatWithUser(message?.from_user_id?._id));
                     }
                     toast.dismiss(t.id);
                 }

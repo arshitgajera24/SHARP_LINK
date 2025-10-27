@@ -11,16 +11,17 @@ import {useUser, useAuth} from "@clerk/clerk-react"
 import Layout from './pages/Layout'
 import toast, {Toaster} from "react-hot-toast"
 import { useEffect } from 'react'
-import {useDispatch} from "react-redux"
+import {useDispatch, useSelector} from "react-redux"
 import { fetchUsers } from './features/user/userSlice.js'
 import { fetchConnections } from './features/connections/connectionsSlice.js'
-import { addMessage, markMessageSeen } from './features/messages/messagesSlice.js'
+import { addMessage, deleteMessage, markMessageSeen } from './features/messages/messagesSlice.js'
 import Notification from './components/Notification.jsx'
 import PostPage from './pages/PostPage.jsx'
 import api from './api/axios.js'
 import Loading from './components/Loading.jsx'
 import Notifications from './pages/Notifications.jsx'
 import { Error } from './pages/Error.jsx'
+import { closeChat } from './features/chat/chatUISlice.js'
 
 
 const App = () => {
@@ -28,7 +29,7 @@ const App = () => {
   const {getToken, isLoaded} = useAuth();
   const {pathname} = useLocation();
   const pathNameRef = useRef(pathname);
-  const firstLoad = useRef(true);
+  const { selectedUserId } = useSelector((state) => state.chatUI);
 
   // const { signOut } = useAuth();
   // signOut();
@@ -48,6 +49,14 @@ const App = () => {
   }, [user, getToken, dispatch])
 
   useEffect(() => {
+    const isMobile = window.innerWidth < 768;
+    if(isMobile && (pathname === "/" || pathname.startsWith("/profile")))
+    {
+      dispatch(closeChat());
+    }
+  }, [pathname, dispatch])
+
+  useEffect(() => {
     pathNameRef.current = pathname    
   }, [pathname])
 
@@ -61,11 +70,10 @@ const App = () => {
         switch(message.type) {
           case "newMessage":
             const msg = message.message;
-            if(pathNameRef.current !== `/messages`)
-            {
-              toast.custom((t) => <Notification t={t} message={msg} />, {position: "top-right"});
-            }
-            else
+            const isOnMessagesPage = pathNameRef.current.startsWith("/messages");
+            const isChatboxOpen = !!selectedUserId;
+
+            if((isOnMessagesPage && selectedUserId === msg.from_user_id._id) || (!isOnMessagesPage && selectedUserId === msg.from_user_id._id))
             {
               const markAsSeen = async () => {
                 const token = await getToken();
@@ -75,6 +83,10 @@ const App = () => {
               };
               markAsSeen();
             }
+            else if (!isOnMessagesPage && !isChatboxOpen)
+            {
+              toast.custom((t) => <Notification t={t} message={msg} />, {position: "top-right"});
+            }
             dispatch(addMessage(msg));
             break;
 
@@ -83,11 +95,28 @@ const App = () => {
               dispatch(markMessageSeen({ messageIds: message.messageIds }));
             }
             break;
+          
+          case "message_deleted":
+            dispatch(deleteMessage({
+              messageId: message.messageId,
+              from_user_id: message.from_user_id,
+              to_user_id: message.to_user_id,
+              currentUserId: user.id
+            }));
+            break;
 
           default:
             console.warn("Unknown SSE message type:", message);
         }
       }
+
+      eventSource.onerror = (err) => {
+        console.warn("SSE disconnected. Reconnecting...");
+        eventSource.close();
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
+      };
 
       return () => {
         eventSource.close();

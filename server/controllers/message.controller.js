@@ -208,8 +208,16 @@ export const deleteMessage = async (req, res) => {
         const message = await Message.findById(messageId);
         if (!message) return res.json({ success: false, message: "Message not found" });
 
+        const { from_user_id, to_user_id } = message;
+
         await message.deleteOne();
 
+        
+        const event = `data: ${JSON.stringify({ type: "message_deleted", messageId, from_user_id, to_user_id  })}\n\n`;
+        
+        if (connections[from_user_id]) connections[from_user_id].write(event);
+        if (connections[to_user_id]) connections[to_user_id].write(event);
+        
         res.json({ success: true, message: "Message Deleted", deletedMessageId: messageId });
     } catch (error) {
         console.log(error);

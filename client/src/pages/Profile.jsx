@@ -101,7 +101,7 @@ const Profile = () => {
       const isMobile = window.innerWidth < 768;
 
       if (isMobile) {
-        navigate(`/messages`);
+        navigate('/messages', { state: { fromProfileChat: true } });
         dispatch(openChatWithUser(profileId));
       } else {
         dispatch(openChatWithUser(profileId));
