@@ -28,6 +28,14 @@ const Messages = () => {
     window.history.replaceState({}, document.title);
   }, [dispatch]);
 
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, []);
+
   return <div className="flex h-full bg-slate-50">
       {/* Left Panel: Recent Chats */}
       <div className={`border-r border-gray-300 bg-white flex flex-col w-1/3 ${!selectedUserId ? 'w-full md:w-1/3 flex' : 'hidden md:flex'} max-h-screen`}>
