@@ -398,7 +398,7 @@ const PostCard = ({post, onDelete}) => {
         {/* Media */}
         {
             post.video_url ? (
-                <div className="relative w-full h-[500px] overflow-hidden rounded-lg mt-2 bg-gray-100">
+                <div className="relative w-full h-[500px] overflow-hidden rounded-lg mt-2 bg-white">
                     {isVideoLoading && (
                         <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
                             <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
@@ -415,7 +415,7 @@ const PostCard = ({post, onDelete}) => {
                             autoPlay
                             loop
                             playsInline
-                            className={`w-full h-full object-contain transition-opacity duration-300 ${isVideoLoading ? 'opacity-0' : 'opacity-100'}`}
+                            className={`w-full h-full object-contain transition-opacity bg-white duration-300 ${isVideoLoading ? 'opacity-0' : 'opacity-100'}`}
                             preload="auto"
                             onClick={handleVideoClick}
                             onDoubleClick={handleLike}
