@@ -160,7 +160,7 @@ const Chatbox = ({ selectedUserId }) => {
   };
 
   return user && (
-    <div className='flex flex-col flex-1 max-h-full overflow-x-hidden'>
+    <div className='flex flex-col flex-1 max-h-[94.5vh] overflow-x-hidden'>
       <div onClick={() => navigate(`/profile/${userId}`)} className='flex items-center gap-2 p-2 md:px-10 bg-white border-b border-gray-300 sticky top-0 z-10 cursor-pointer'>
         <button onClick={(e) => {e.stopPropagation(); navigate("/messages");}}>
           <ArrowLeft className='w-6 h-6 hover:scale-110 active:scale-95 mr-2 cursor-pointer' />
@@ -172,7 +172,7 @@ const Chatbox = ({ selectedUserId }) => {
         </div>
       </div>
 
-      <div id="chat-container" className='flex-1 overflow-y-auto overflow-x-hidden p-5 md:px-10 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200'>
+      <div id="chat-container" className='flex-1 overflow-y-auto no-scrollbar overflow-x-hidden p-5 md:px-10 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200'>
         <div className='space-y-4 max-w-4xl mx-auto'>
           {
             messages.toSorted((a,b) => new Date(a.createdAt) - new Date(b.createdAt)).map((message, index) => {
