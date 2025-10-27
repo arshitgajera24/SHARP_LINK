@@ -126,11 +126,27 @@ const deleteStory = inngest.createFunction(
         const in24Hours = new Date(Date.now() + 24*60*60*1000);
         await step.sleepUntil("wait-for-24-hours", in24Hours);
         await step.run("delete-story", async () => {
+            const story = await Story.findById(storyId);
+            if (!story) return { message: "Already deleted" };
+
             await Story.findByIdAndDelete(storyId);
             return {message: "Story Expired"}
         })
     }
 )
+
+//* Backup cron cleanup (runs every 30 minutes to ensure no missed stories)
+const cleanupExpiredStories = inngest.createFunction(
+    { id: 'cleanup-expired-stories' },
+    { cron: "*/30 * * * *" },
+    async ({ step }) => {
+        const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const result = await step.run("delete-old-stories", async () => {
+            return await Story.deleteMany({ createdAt: { $lt: cutoff } });
+        });
+        return { deletedCount: result.deletedCount || 0 };
+    }
+);
 
 //* Send Notification Of Unseen Messages
 const SendNotificationOfUnseenMessages = inngest.createFunction(
@@ -173,5 +189,6 @@ export const functions = [
     syncUserDeletion,
     sendNewConnectionRequestReminder,
     deleteStory,
+    cleanupExpiredStories,
     SendNotificationOfUnseenMessages,
 ];

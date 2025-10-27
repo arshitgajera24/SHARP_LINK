@@ -3,8 +3,6 @@ import api from "../../api/axios.js"
 
 const initialState = {
     messages: [],
-    loading: false,
-    error: null
 }
 
 export const fetchMessages = createAsyncThunk("messages/fetchMessages", async ({token, userId}) => {
@@ -40,8 +38,6 @@ const messagesSlice = createSlice({
         },
         resetMessages: (state) => {
             state.messages = [];
-            state.loading = false;
-            state.error = null;
         },
         deleteMessage: (state, action) => {
             const { messageId } = action.payload;
