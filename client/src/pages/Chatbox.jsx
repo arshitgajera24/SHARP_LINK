@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, Copy, EllipsisVertical, Image, Send, SendHorizonal, Trash2 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
 import api from '../api/axios.js';
 import toast from 'react-hot-toast';
@@ -27,6 +27,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
   const {getToken} = useAuth();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const {pathname} = useLocation();
   const currentUser = useSelector((state) => state.user.value);
 
   const connections = useSelector((state) => state.connections.connections);
@@ -162,7 +163,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
   };
 
   return user && (
-    <div className='flex flex-col flex-1 max-h-[94.5vh] sm:max-h-[100vh] overflow-x-hidden'>
+    <div className={`flex flex-col flex-1 max-h-[94.5vh] ${pathname === "/messages" ? "sm:max-h-[100vh]" : "sm:max-h-[94.5vh]" }   overflow-x-hidden`}>
       <div onClick={() => { navigate(`/profile/${userId}`); dispatch(closeChat()); }} className='flex items-center gap-2 p-2 md:px-10 bg-white border-b border-gray-300 sticky top-0 z-10 cursor-pointer'>
         <button onClick={(e) => {e.stopPropagation(); onBack && onBack(); }}>
           <ArrowLeft className='w-6 h-6 hover:scale-110 active:scale-95 mr-2 cursor-pointer' />
