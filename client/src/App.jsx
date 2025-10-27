@@ -73,7 +73,7 @@ const App = () => {
             const isOnMessagesPage = pathNameRef.current.startsWith("/messages");
             const isChatboxOpen = !!selectedUserId;
 
-            if((isOnMessagesPage && selectedUserId === msg.from_user_id._id) || (!isOnMessagesPage && selectedUserId === msg.from_user_id._id))
+            if((isOnMessagesPage && selectedUserId === msg.from_user_id) || (!isOnMessagesPage && selectedUserId === msg.from_user_id))
             {
               const markAsSeen = async () => {
                 const token = await getToken();
