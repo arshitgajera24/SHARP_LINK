@@ -6,6 +6,7 @@ import { useAuth } from '@clerk/clerk-react';
 import api from '../api/axios.js';
 import toast from 'react-hot-toast';
 import { addMessage, fetchMessages, resetMessages } from '../features/messages/messagesSlice.js';
+import OpenMediaChat from '../components/OpenMediaChat.jsx';
 
 const Chatbox = ({ selectedUserId }) => {
 
@@ -15,6 +16,7 @@ const Chatbox = ({ selectedUserId }) => {
   const [clickedMessageId, setClickedMessageId] = useState(null);
   const [initialLoad, setInitialLoad] = useState(true);
   const [loaded, setLoaded] = useState(false);
+  const [showMedia, setShowMedia] = useState(null);
 
   const {messages} = useSelector((state) => state.messages);
   const userId = !selectedUserId ? useParams()?.userId : selectedUserId;
@@ -181,7 +183,10 @@ const Chatbox = ({ selectedUserId }) => {
                   
                   {/* Image Message */}
                   {
-                    message.message_type === "image" && <img src={message.media_url} alt="Chat Media" className='w-[150px] h-[225px] max-w-sm rounded-lg mb-1' loading='lazy' decoding='async' onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
+                    message.message_type === "image" && <img onClick={() => setShowMedia(message.media_url)} src={message.media_url} alt="Chat Media" className='w-[150px] h-[225px] max-w-sm rounded-lg mb-1 relative' loading='lazy' decoding='async' onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
+                  }
+                  {
+                    showMedia != null && <OpenMediaChat setShowMedia={setShowMedia} showMedia={showMedia} />
                   }
 
                   {/* Post Message */}
