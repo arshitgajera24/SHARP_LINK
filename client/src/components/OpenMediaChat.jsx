@@ -1,6 +1,5 @@
 import { ArrowLeft } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
-import Loading from './Loading';
 
 const OpenMediaChat = ({setShowMedia, showMedia}) => {
 
@@ -25,7 +24,11 @@ const OpenMediaChat = ({setShowMedia, showMedia}) => {
 
             <div className='relative w-full h-[80vh] flex items-center justify-center bg-black rounded-lg overflow-hidden'>
                 {
-                    !loaded && <Loading />
+                    !loaded && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-10 h-10 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        </div>
+                    )
                 }
                 {
                     showMedia && <img src={showMedia} alt="Chat Media" className={`object-contain max-h-full max-w-full transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`} decoding="async" onLoad={() => setLoaded(true)} />
