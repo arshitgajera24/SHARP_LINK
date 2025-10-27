@@ -119,19 +119,15 @@ const Chatbox = ({ selectedUserId, onBack }) => {
     return () => clearInterval(intervalId);
   }, [userId]);
 
-  const isUserNearBottom = () => {
-    const chatContainer = document.getElementById("chat-container");
-    if (!chatContainer) return true;
-    const threshold = 100;
-    return chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < threshold;
-  };
-
   useEffect(() => {
     if (!isLoading && messages.length > 0) {
       const chatContainer = document.getElementById("chat-container");
       if (!chatContainer) return;
 
-      if (initialLoad || isUserNearBottom) {
+      const threshold = 100;
+      const isNearBottom = chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < threshold;
+
+      if (initialLoad || isNearBottom) {
         chatContainer.scrollTo({
           top: chatContainer.scrollHeight,
           behavior: initialLoad ? "auto" : "smooth",
