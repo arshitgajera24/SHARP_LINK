@@ -15,7 +15,7 @@ const OpenMediaChat = ({setShowMedia, showMedia}) => {
                 <span className='w-10'></span>
             </div>
 
-            <div className='rounded-lg h-200 flex items-center justify-center relative bg-black'>
+            <div className='rounded-lg h-170 sm:h-140 md:h-160 flex items-center justify-center relative bg-black'>
                 {
                     showMedia && <img src={showMedia} alt="Chat Media" className='object-contain max-h-full' loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                 }
