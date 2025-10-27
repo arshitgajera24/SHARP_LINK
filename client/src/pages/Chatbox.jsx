@@ -76,12 +76,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
         if(data.success)
         {
             toast.success(`${data.message} 💨`, { id: toastId });
-            dispatch(deleteMessage({
-              messageId,
-              from_user_id: currentUser._id,
-              to_user_id: userId,
-              currentUserId: currentUser._id
-            }));
+            dispatch(deleteMessage({messageId}));
             setClickedMessageId(null);
         }
         else
