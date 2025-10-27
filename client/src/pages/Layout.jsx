@@ -105,7 +105,7 @@ const Layout = () => {
         <main className='relative flex-1 flex flex-col xl:overflow-y-auto md:overflow-y-auto'>
           <Outlet />
           {
-            selectedUserId && pathName !== "/messages" && (
+            selectedUserId && pathName === "/feed" && pathName === "/profile/*" && (
               <div className="fixed bottom-4 right-4 w-96 shadow-2xl rounded-2xl bg-white border border-gray-200 z-50">
                 <Chatbox
                   selectedUserId={selectedUserId}

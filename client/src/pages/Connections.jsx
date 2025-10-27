@@ -193,7 +193,7 @@ const Connections = () => {
         </div>
 
         {/* Connections */}
-        <div className='flex flex-wrap gap-6 mt-6'>
+        <div className='flex flex-wrap gap-6 mt-6 mb-12 justify-center md:justify-start'>
           {
             dataArray.find((item) => item.label === currTab).value.map((user) => (
               <div onClick={() => navigate(`/profile/${user._id}`)} key={user._id} className={`w-full max-w-88 flex gap-5 p-6 bg-white shadow rounded-md ${currTab === "Pending" ? "cursor-pointer" : ""}`}>

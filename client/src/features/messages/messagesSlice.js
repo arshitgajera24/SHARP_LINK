@@ -30,16 +30,18 @@ const messagesSlice = createSlice({
             state.messages = action.payload;
         },
         addMessage: (state, action) => {
-            const message = action.payload;
-            state.messages = [...state.messages, message];
+            const newMessages = Array.isArray(action.payload) ? action.payload : [action.payload];
+            state.messages = [...state.messages, ...newMessages];
 
-            const userId =
+            newMessages.forEach(message => {
+                const userId =
                 message.from_user_id === message.currentUserId
-                ? message.to_user_id
-                : message.from_user_id;
+                    ? message.to_user_id
+                    : message.from_user_id;
 
-            if (!state.cache[userId]) state.cache[userId] = [];
-            state.cache[userId].push(message);
+                if (!state.cache[userId]) state.cache[userId] = [];
+                state.cache[userId].push(message);
+            });
         },
         markMessageSeen: (state, action) => {
             const { messageIds } = action.payload;
