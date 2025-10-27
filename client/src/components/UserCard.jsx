@@ -6,6 +6,7 @@ import api from '../api/axios.js';
 import toast from 'react-hot-toast';
 import { fetchUsers } from '../features/user/userSlice.js';
 import { useState } from 'react';
+import { openChatWithUser } from '../features/chat/chatUISlice.js';
 
 const UserCard = ({user}) => {
 
@@ -40,7 +41,14 @@ const UserCard = ({user}) => {
     const handleConnectionRequest = async () => {
         if(currentUser.connections.includes(user._id))
         {
-            return navigate(`/messages/${user._id}`);
+            const isMobile = window.innerWidth < 768;
+            
+            if (isMobile) {
+                navigate(`/messages`);
+                dispatch(openChatWithUser(user._id));
+            } else {
+                dispatch(openChatWithUser(user._id));
+            }
         }
 
         try {

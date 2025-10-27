@@ -61,7 +61,7 @@ const App = () => {
         switch(message.type) {
           case "newMessage":
             const msg = message.message;
-            if(pathNameRef.current !== `/messages/${msg.from_user_id._id}`) 
+            if(pathNameRef.current !== `/messages`)
             {
               toast.custom((t) => <Notification t={t} message={msg} />, {position: "top-right"});
             }

@@ -12,6 +12,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchUsers } from '../features/user/userSlice.js';
 import { MessageCircle, Plus, UserPlus } from 'lucide-react';
 import { fetchConnections } from '../features/connections/connectionsSlice.js';
+import { openChatWithUser } from '../features/chat/chatUISlice.js';
 
 const Profile = () => {
 
@@ -22,7 +23,7 @@ const Profile = () => {
   const [posts, setPosts] = useState([]);
   const [activeTab, setActiveTab] = useState("Posts");
   const [showEdit, setShowEdit] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(currentUser?.following?.includes(profileId) ? true : false);
   const [loaded, setLoaded] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState(null);
   const [userConnections, setUserConnections] = useState([]);
@@ -56,6 +57,8 @@ const Profile = () => {
       if(data.success){
         toast.success(data.message);
         dispatch(fetchUsers(await getToken()));
+        await fetchUser(profileId);
+        dispatch(fetchConnections(await getToken()));
       } else {
         toast.error(data.message);
         setIsFollowing(false);
@@ -77,7 +80,9 @@ const Profile = () => {
   
         if(data.success)
         {
-          toast.success(data.message)
+          toast.success(data.message);
+          dispatch(fetchUsers(await getToken()));
+          await fetchUser(userId);
           dispatch(fetchConnections(await getToken()))
         }
         else
@@ -93,7 +98,14 @@ const Profile = () => {
 
   const handleConnectionRequest = async () => {
     if(connectionStatus === "accepted") {
-      navigate(`/messages/${profileId}`);
+      const isMobile = window.innerWidth < 768;
+
+      if (isMobile) {
+        navigate(`/messages`);
+        dispatch(openChatWithUser(profileId));
+      } else {
+        dispatch(openChatWithUser(profileId));
+      }
       return;
     }
 
@@ -161,9 +173,16 @@ const Profile = () => {
     }
 
     if (profileId) {
-      setIsFollowing(currentUser?.following?.includes(profileId));
+      setIsFollowing(currentUser?.following?.includes(profileId) ? true : false);
     }
-  }, [profileId, currentUser])
+  }, [profileId, currentUser, getToken]);
+
+  useEffect(() => {
+    if (profileId && currentUser?.following) {
+      setIsFollowing(currentUser.following.includes(profileId));
+    }
+  }, [currentUser?.following, profileId]);
+
 
   return user ? (
     <div className='relative h-full bg-gray-50 p-6 md:overflow-y-scroll'>
@@ -186,13 +205,13 @@ const Profile = () => {
             profileId && profileId !== currentUser._id && 
             <div className="flex flex-col sm:flex-row justify-end items-center mb-6 sm:items-start gap-3 mt-4 px-4 sm:px-6">
               {/* Follow / Unfollow */}
-              <button onClick={() => {isFollowing ? handleUnfollow(profileId) : handleFollow()}} className="w-full sm:w-auto py-2 px-6 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold rounded-md transition active:scale-95 flex justify-center items-center gap-2">
+              <button onClick={() => {isFollowing ? handleUnfollow(profileId) : handleFollow()}} className="w-full sm:w-auto py-2 px-6 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold rounded-md transition active:scale-95 flex justify-center items-center gap-2 cursor-pointer">
                 <UserPlus className="w-5 h-5"/>
                 {isFollowing ? "Following" : "Follow"}
               </button>
 
               {/* Connection Request / Message */}
-              <button onClick={handleConnectionRequest} disabled={connectionStatus === "pending"} className={`w-full sm:w-auto py-2 px-6 rounded-md transition active:scale-95 flex justify-center items-center gap-2 ${connectionStatus === "accepted" ? "border border-gray-300 text-gray-700 hover:bg-gray-100" : connectionStatus === "pending" ? "bg-gray-300 text-gray-600 cursor-not-allowed" : "border border-gray-300 text-gray-700 hover:bg-gray-100"}`}>
+              <button onClick={handleConnectionRequest} disabled={connectionStatus === "pending"} className={`w-full sm:w-auto py-2 px-6 rounded-md transition active:scale-95 flex justify-center items-center gap-2 ${connectionStatus === "accepted" ? "border border-gray-300 text-gray-700 hover:bg-gray-100 cursor-pointer" : connectionStatus === "pending" ? "bg-gray-300 text-gray-600 cursor-not-allowed" : "border border-gray-300 text-gray-700 hover:bg-gray-100"}`}>
                 {
                   connectionStatus === "accepted"
                   ? <><MessageCircle className="w-5 h-5"/> Send Message </>

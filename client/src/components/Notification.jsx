@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom'
+import { openChatWithUser } from '../features/chat/chatUISlice';
+import { useDispatch } from 'react-redux';
 
 const Notification = ({t, message}) => {
 
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const [loaded, setLoaded] = useState(false);
 
     const getNotificationText = (m) => {
@@ -34,7 +37,13 @@ const Notification = ({t, message}) => {
         <div className='flex border-l border-gray-200'>
             <button onClick={() => 
                 {
-                    navigate(`/messages/${message.from_user_id._id}`);
+                    const isMobile = window.innerWidth < 768;
+                    if (isMobile) {
+                        navigate(`/messages`);
+                        dispatch(openChatWithUser(message.from_user_id._id));
+                    } else {
+                        dispatch(openChatWithUser(message.from_user_id._id));
+                    }
                     toast.dismiss(t.id);
                 }
             } className='p-4 text-indigo-600 font-semibold cursor-pointer'>

@@ -6,6 +6,8 @@ import { useAuth } from '@clerk/clerk-react';
 import { fetchConnections } from '../features/connections/connectionsSlice.js';
 import api from '../api/axios.js';
 import toast from 'react-hot-toast';
+import { fetchUsers } from '../features/user/userSlice.js';
+import { openChatWithUser } from '../features/chat/chatUISlice.js';
 
 const Connections = () => {
 
@@ -36,6 +38,7 @@ const Connections = () => {
       {
         toast.success(data.message)
         dispatch(fetchConnections(await getToken()))
+        dispatch(fetchUsers(await getToken()));
       }
       else
       {
@@ -132,6 +135,7 @@ const Connections = () => {
           icon: "👋"
         })
         dispatch(fetchConnections(await getToken()))
+        dispatch(fetchUsers(await getToken()));
       }
       else
       {
@@ -140,6 +144,18 @@ const Connections = () => {
     } catch (error) {
       toast.error(error.message)
     }
+  }
+
+  const openChat = async (userId) => {
+    const isMobile = window.innerWidth < 768;
+    
+    if (isMobile) {
+      navigate(`/messages`);
+      dispatch(openChatWithUser(userId));
+    } else {
+      dispatch(openChatWithUser(userId));
+    }
+    return;
   }
 
   useEffect(() => {
@@ -222,7 +238,7 @@ const Connections = () => {
                     {
                       currTab === "Connections" && (
                         <>
-                          <button onClick={(e) => {e.stopPropagation(); navigate(`/messages/${user._id}`)}} className='w-full p-2 text-sm rounded bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 active:scale-95 transition text-white cursor-pointer flex items-center justify-center gap-1'>
+                          <button onClick={(e) => {e.stopPropagation(); openChat(user._id); }} className='w-full p-2 text-sm rounded bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 active:scale-95 transition text-white cursor-pointer flex items-center justify-center gap-1'>
                             <MessageSquare className='w-4 h-4' />
                             Message
                           </button>

@@ -3,15 +3,23 @@ import api from "../../api/axios.js"
 
 const initialState = {
     messages: [],
+    cache: {},
 }
 
-export const fetchMessages = createAsyncThunk("messages/fetchMessages", async ({token, userId}) => {
+export const fetchMessages = createAsyncThunk("messages/fetchMessages", async ({token, userId}, {getState}) => {
+    const existing = getState().messages.cache[userId];
+    if(existing)
+    {
+        return { fromCache: true, userId, messages: existing };
+    }
     const {data} = await api.post("/api/message/get", { to_user_id: userId }, {
         headers: {
             Authorization: `Bearer ${token}`
         }
     })
-    return data.success ? data : null;
+
+    if (!data.success) return null;
+    return { fromCache: false, userId, messages: data.messages };
 })
 
 const messagesSlice = createSlice({
@@ -22,7 +30,16 @@ const messagesSlice = createSlice({
             state.messages = action.payload;
         },
         addMessage: (state, action) => {
-            state.messages = [...state.messages, action.payload];
+            const message = action.payload;
+            state.messages = [...state.messages, message];
+
+            const userId =
+                message.from_user_id === message.currentUserId
+                ? message.to_user_id
+                : message.from_user_id;
+
+            if (!state.cache[userId]) state.cache[userId] = [];
+            state.cache[userId].push(message);
         },
         markMessageSeen: (state, action) => {
             const { messageIds } = action.payload;
@@ -35,13 +52,20 @@ const messagesSlice = createSlice({
         },
         resetMessages: (state) => {
             state.messages = [];
+            state.cache = {};
         },
     },
     extraReducers: (builder) => {
         builder.addCase(fetchMessages.fulfilled, (state, action) => {
             if(action.payload)
             {
-                state.messages = action.payload.messages
+                const { userId, messages, fromCache } = action.payload;
+
+                state.messages = messages;
+                if(!fromCache)
+                {
+                    state.cache[userId] = messages;
+                }
             }
         })
     }

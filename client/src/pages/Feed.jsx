@@ -7,6 +7,9 @@ import RecentMessages from '../components/RecentMessages';
 import { useAuth } from '@clerk/clerk-react';
 import api from '../api/axios.js';
 import toast from 'react-hot-toast';
+import { useDispatch, useSelector } from 'react-redux';
+import Chatbox from './Chatbox.jsx';
+import { closeChat } from '../features/chat/chatUISlice.js';
 
 const Feed = () => {
 

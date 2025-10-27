@@ -2,13 +2,15 @@ import { useEffect, useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { MessageCircle, Heart } from 'lucide-react';
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import MobileBottomNav from '../components/MobileBottomNav'
 import { assets } from '../assets/assets.js';
 import Loading from '../components/Loading.jsx';
 import { useAuth, useClerk, UserButton } from '@clerk/clerk-react';
 import toast from 'react-hot-toast';
 import api from '../api/axios.js';
+import { closeChat } from '../features/chat/chatUISlice.js';
+import Chatbox from './Chatbox.jsx';
 
 const Layout = () => {
   const user = useSelector((state) => state.user.value);
@@ -18,6 +20,9 @@ const Layout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const pathName = location.pathname;
+
+  const { selectedUserId } = useSelector((state) => state.chatUI);
+  const dispatch = useDispatch();
 
   const [counts, setCounts] = useState({
     unreadMessages: 0,
@@ -97,8 +102,18 @@ const Layout = () => {
         </header>
 
         {/* CONTENT */}
-        <main className='flex-1 flex flex-col xl:overflow-y-auto md:overflow-y-auto'>
+        <main className='relative flex-1 flex flex-col xl:overflow-y-auto md:overflow-y-auto'>
           <Outlet />
+          {
+            selectedUserId && pathName !== "/messages" && (
+              <div className="fixed bottom-4 right-4 w-96 shadow-2xl rounded-2xl bg-white border border-gray-200 z-50">
+                <Chatbox
+                  selectedUserId={selectedUserId}
+                  onBack={() => dispatch(closeChat())}
+                />
+              </div>
+            )
+          }
         </main>
 
         {/* Bottom navigation for mobile */}

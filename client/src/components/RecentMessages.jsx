@@ -5,6 +5,8 @@ import { useAuth, useUser } from '@clerk/clerk-react';
 import api from '../api/axios.js';
 import toast from 'react-hot-toast';
 import Loading from './Loading.jsx';
+import { useDispatch } from 'react-redux';
+import { openChatWithUser } from '../features/chat/chatUISlice.js';
 
 const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
 
@@ -14,6 +16,7 @@ const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
     const location = useLocation();
     const pathName = location.pathname;
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const {getToken} = useAuth();
     const [loading, setLoading] = useState(false);
 
@@ -110,7 +113,7 @@ const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
             {
                 messages.length > 0 ? (messages.map((message, index) => {
                     const otherUser = message.from_user_id._id === user.id ? message.to_user_id : message.from_user_id;
-                    return <div onClick={async () => {await markConversationAsSeen(otherUser._id); navigate(`/messages/${otherUser._id}`);}} key={index} className='flex items-start gap-2 py-2 hover:bg-slate-100'>
+                    return <div onClick={async () => {await markConversationAsSeen(otherUser._id); dispatch(openChatWithUser(otherUser._id)); }} key={index} className='flex items-start gap-2 py-2 hover:bg-slate-100'>
                         <img src={otherUser.profile_picture} alt="Profile Picture" className='w-8 h-8 rounded-full' loading='lazy' decoding='async' onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                         <div className='w-full'>
                             <div className='flex justify-between'>
@@ -138,7 +141,7 @@ const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
         {
             messages.length > 0 ? (messages.map((msg) => {
                 const otherUser = msg.from_user_id._id === user.id ? msg.to_user_id : msg.from_user_id;
-                return <div key={otherUser._id} onClick={async () => {await markConversationAsSeen(otherUser._id); onSelectUser(otherUser._id)}} className={`flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-100 transition ${selectedUserId === otherUser._id ? "bg-gray-200" : ""}`}>
+                return <div key={otherUser._id} onClick={async () => {await markConversationAsSeen(otherUser._id); onSelectUser(otherUser._id); }} className={`flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-100 transition ${selectedUserId === otherUser._id ? "bg-gray-200" : ""}`}>
                     <img src={otherUser.profile_picture} className="w-12 h-12 rounded-full" loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                     <div className="flex-1">
                         <div className="flex justify-between">
