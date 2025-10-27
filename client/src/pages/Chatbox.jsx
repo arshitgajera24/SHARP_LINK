@@ -201,7 +201,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
                     
                     {/* Image Message */}
                     {
-                      message.message_type === "image" && <img onClick={() => setShowMedia(message.media_url)} src={message.media_url} alt="Chat Media" className='w-[225px] h-[250px] max-w-sm rounded-lg mb-1 relative' loading='lazy' decoding='async' onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
+                      message.message_type === "image" && <img onClick={() => setShowMedia(message.media_url)} src={message.media_url} alt="Chat Media" className='w-[225px] h-[250px] max-w-sm rounded-lg mb-1 relative cursor-pointer' loading='lazy' decoding='async' onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                     }
                     {
                       showMedia != null && <OpenMediaChat setShowMedia={setShowMedia} showMedia={showMedia} />
