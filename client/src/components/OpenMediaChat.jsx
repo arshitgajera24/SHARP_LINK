@@ -1,4 +1,5 @@
 import { ArrowLeft } from 'lucide-react'
+import { createPortal } from 'react-dom'
 import React, { useEffect, useState } from 'react'
 
 const OpenMediaChat = ({setShowMedia, showMedia}) => {
@@ -12,8 +13,8 @@ const OpenMediaChat = ({setShowMedia, showMedia}) => {
         };
     }, []);
 
-  return (
-    <div className='fixed inset-0 z-[9999] bg-black/90 text-white flex flex-col items-center justify-center p-4 transition-opacity duration-300'>
+  const modal = (
+    <div className='fixed inset-0 z-[99999] bg-black/95 text-white flex flex-col items-center justify-center p-4'>
         <div className='w-full max-w-md flex flex-col'>
             <div className='flex items-center justify-between mb-4'>
                 <button onClick={() => setShowMedia(null)} className='text-white p-2 cursor-pointer'>
@@ -31,12 +32,14 @@ const OpenMediaChat = ({setShowMedia, showMedia}) => {
                     )
                 }
                 {
-                    showMedia && <img src={showMedia} alt="Chat Media" className={`object-contain max-h-full max-w-full transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`} decoding="async" onLoad={() => setLoaded(true)} />
+                    showMedia && <img src={showMedia} alt="Chat Media" className={`object-contain max-h-full max-w-full transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`} onLoad={() => setLoaded(true)} />
                 }
             </div>
         </div>
     </div>
   )
+
+  return createPortal(modal, document.body);
 }
 
 export default OpenMediaChat
