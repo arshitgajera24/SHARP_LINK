@@ -334,7 +334,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
         </div>
       </div>
 
-      <div className='sticky bottom-0 w-full px-4 z-20 bg-white py-2 md:pb-2 pb-15'>
+      <div className='sticky bottom-0 w-full px-4 z-20 bg-white py-2 md:pb-2 pb-28'>
         <div className='flex items-center gap-3 pl-5 p-1.5 bg-white w-full max-w-xl mx-auto border border-gray-200 dark:border-gray-700 shadow rounded-full'>
           <input onKeyDown={e => e.key === "Enter" && sendMessage()} onChange={(e) => setText(e.target.value)} value={text} type="text" className='flex-1 outline-none text-slate-700' placeholder='Type a Message...' />
           <label htmlFor="image">
