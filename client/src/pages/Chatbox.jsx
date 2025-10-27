@@ -118,6 +118,10 @@ const Chatbox = ({ selectedUserId, onBack }) => {
     };
 
     fetchAndSet();
+
+    const intervalId = setInterval(fetchAndSet, 2000);
+
+    return () => clearInterval(intervalId);
   }, [userId]);
 
   const isUserNearBottom = () => {
@@ -128,24 +132,22 @@ const Chatbox = ({ selectedUserId, onBack }) => {
   };
 
   useEffect(() => {
-    const sortedMessages = [...messages].sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt));
-    const lastUnseenIndex = sortedMessages.findIndex(msg => !msg.seen && msg.from_user_id?._id !== currentUser._id);
-    const lastMessage = lastUnseenIndex !== -1
-      ? document.getElementById(`message-${sortedMessages[lastUnseenIndex]._id}`)
-      : document.getElementById(`message-${sortedMessages[sortedMessages.length-1]?._id}`);
-
-    if (!lastMessage) return;
-
-    if (initialLoad || isUserNearBottom()) {
-      lastMessage.scrollIntoView({ behavior: initialLoad ? "auto" : "smooth" });
-      if (initialLoad) setInitialLoad(false);
-    }
-  }, [messages]);
-
-  useEffect(() => {
     if (!isLoading && messages.length > 0) {
-      const container = document.getElementById("chat-container");
-      container?.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+      const chatContainer = document.getElementById("chat-container");
+      if (!chatContainer) return;
+
+      // Only scroll if user is already near bottom
+      const threshold = 100;
+      const isNearBottom =
+        chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < threshold;
+
+      if (initialLoad || isNearBottom) {
+        chatContainer.scrollTo({
+          top: chatContainer.scrollHeight,
+          behavior: initialLoad ? "auto" : "smooth",
+        });
+        setInitialLoad(false);
+      }
     }
   }, [isLoading, messages]);
 

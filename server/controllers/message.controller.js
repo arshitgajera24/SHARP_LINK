@@ -173,7 +173,7 @@ export const getChatMessages = async (req, res) => {
             await Message.updateMany({ _id: { $in: messageIds } }, { seen: true });
             if (connections[to_user_id]) {
                 connections[to_user_id].forEach(conn => {
-                    conn.write(`data: ${JSON.stringify({ type: "newMessage", message: decryptedForReceiver })}\n\n`);
+                    conn.write(`data: ${JSON.stringify({ type: "messageSeen", userId, messageIds })}\n\n`);
                 });
             }
         }
