@@ -5,7 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
 import api from '../api/axios.js';
 import toast from 'react-hot-toast';
-import { addMessage, deleteMessage, fetchMessages, forceRefreshMessages, resetMessages, setMessages } from '../features/messages/messagesSlice.js';
+import { addMessage, deleteMessage, fetchMessages, forceRefreshMessages } from '../features/messages/messagesSlice.js';
 import OpenMediaChat from '../components/OpenMediaChat.jsx';
 import { closeChat, setChatLoaded } from '../features/chat/chatUISlice.js';
 
@@ -175,7 +175,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
   };
 
   return user && (
-    <div className='flex flex-col flex-1 max-h-[94.5vh] overflow-x-hidden'>
+    <div className='flex flex-col flex-1 max-h-[90vh] overflow-x-hidden'>
       <div onClick={() => { navigate(`/profile/${userId}`); dispatch(closeChat()); }} className='flex items-center gap-2 p-2 md:px-10 bg-white border-b border-gray-300 sticky top-0 z-10 cursor-pointer'>
         <button onClick={(e) => {e.stopPropagation(); onBack && onBack(); }}>
           <ArrowLeft className='w-6 h-6 hover:scale-110 active:scale-95 mr-2 cursor-pointer' />
