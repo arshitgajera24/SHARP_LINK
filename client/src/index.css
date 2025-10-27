@@ -145,7 +145,6 @@
 
 .animate-gradient {
   background-size: 500%;
-  -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: animate-gradient 10s ease-in-out infinite;
 }
