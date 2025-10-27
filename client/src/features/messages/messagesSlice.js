@@ -3,23 +3,19 @@ import api from "../../api/axios.js"
 
 const initialState = {
     messages: [],
-    cache: {},
+    loading: false,
+    error: null
 }
 
-export const fetchMessages = createAsyncThunk("messages/fetchMessages", async ({token, userId}, {getState}) => {
-    const existing = getState().messages.cache[userId];
-    if(existing && !getState().messages.forceRefresh) 
-    {
-        return { fromCache: true, userId, messages: existing };
-    }
+export const fetchMessages = createAsyncThunk("messages/fetchMessages", async ({token, userId}) => {
     const {data} = await api.post("/api/message/get", { to_user_id: userId }, {
         headers: {
             Authorization: `Bearer ${token}`
         }
     })
 
-    if (!data.success) return null;
-    return { fromCache: false, userId, messages: data.messages };
+    if (!data.success) throw new Error(data.message || "Failed to fetch messages");
+    return data.messages;
 })
 
 const messagesSlice = createSlice({
@@ -30,65 +26,36 @@ const messagesSlice = createSlice({
             state.messages = action.payload;
         },
         addMessage: (state, action) => {
-            const newMessages = Array.isArray(action.payload) ? action.payload : [action.payload];
-            state.messages = [...state.messages, ...newMessages];
+            const newMessage = action.payload;
 
-            newMessages.forEach(message => {
-                const userId =
-                message.from_user_id === message.currentUserId
-                    ? message.to_user_id
-                    : message.from_user_id;
-
-                if (!state.cache[userId]) state.cache[userId] = [];
-                state.cache[userId].push(message);
-            });
+            if (!state.messages.some((msg) => msg._id === newMessage._id)) {
+                state.messages.push(newMessage);
+            }
         },
         markMessageSeen: (state, action) => {
             const { messageIds } = action.payload;
-            state.messages = state.messages.map(msg => {
-                if(messageIds.includes(msg._id)) {
-                    return { ...msg, seen: true };
-                }
-                return msg;
-            });
+            state.messages = state.messages.map((msg) =>
+                messageIds.includes(msg._id) ? { ...msg, seen: true } : msg
+            );
         },
         resetMessages: (state) => {
             state.messages = [];
-            state.cache = {};
+            state.loading = false;
+            state.error = null;
         },
         deleteMessage: (state, action) => {
-            const { messageId, from_user_id, to_user_id, currentUserId } = action.payload;
-            state.messages = state.messages.filter(msg => msg._id !== messageId);
-
-            const otherUserId = from_user_id === currentUserId ? to_user_id : from_user_id;
-
-            Object.keys(state.cache).forEach(uid => {
-                if (uid === otherUserId || uid === from_user_id || uid === to_user_id) {
-                state.cache[uid] = state.cache[uid].filter(msg => msg._id !== messageId);
-                }
-            });
+            const { messageId } = action.payload;
+            state.messages = state.messages.filter((msg) => msg._id !== messageId);
         },
-        forceRefreshMessages: (state) => {
-            state.forceRefresh = !state.forceRefresh;
-        }
     },
     extraReducers: (builder) => {
         builder.addCase(fetchMessages.fulfilled, (state, action) => {
-            if(action.payload)
-            {
-                const { userId, messages, fromCache } = action.payload;
-
-                state.messages = [...messages].sort(
-                    (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
-                );
-
-                if (!fromCache) {
-                    state.cache[userId] = messages;
-                }
-            }
+            state.messages = [...action.payload].sort(
+                (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+            );
         })
     }
 })
 
-export const {setMessages, addMessage, markMessageSeen, resetMessages, deleteMessage, forceRefreshMessages} = messagesSlice.actions;
+export const {setMessages, addMessage, markMessageSeen, resetMessages, deleteMessage} = messagesSlice.actions;
 export default messagesSlice.reducer

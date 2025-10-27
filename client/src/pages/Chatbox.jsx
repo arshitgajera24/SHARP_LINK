@@ -5,7 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
 import api from '../api/axios.js';
 import toast from 'react-hot-toast';
-import { addMessage, deleteMessage, fetchMessages, forceRefreshMessages } from '../features/messages/messagesSlice.js';
+import { addMessage, deleteMessage, fetchMessages } from '../features/messages/messagesSlice.js';
 import OpenMediaChat from '../components/OpenMediaChat.jsx';
 import { closeChat, setChatLoaded } from '../features/chat/chatUISlice.js';
 
@@ -117,7 +117,6 @@ const Chatbox = ({ selectedUserId, onBack }) => {
       }
     };
 
-    dispatch(forceRefreshMessages());
     fetchAndSet();
   }, [userId]);
 

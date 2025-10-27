@@ -97,12 +97,7 @@ const App = () => {
             break;
           
           case "message_deleted":
-            dispatch(deleteMessage({
-              messageId: message.messageId,
-              from_user_id: message.from_user_id,
-              to_user_id: message.to_user_id,
-              currentUserId: user.id
-            }));
+            dispatch(deleteMessage({messageId: message.messageId}));
             break;
 
           default:
@@ -111,10 +106,10 @@ const App = () => {
       }
 
       eventSource.onerror = (err) => {
-        console.warn("SSE disconnected. Reconnecting...");
+        console.warn("SSE disconnected. Attempting to reconnect...");
         eventSource.close();
         setTimeout(() => {
-          window.location.reload();
+          const newEventSource = new EventSource(`${import.meta.env.VITE_BASEURL}/api/message/${user.id}`);
         }, 3000);
       };
 

@@ -22,7 +22,8 @@ export const sseController = (req, res) => {
     if (res.flushHeaders) res.flushHeaders();
 
     //? Add the Client's Response Object to Connections Object
-    connections[userId] = res;
+    if (!connections[userId]) connections[userId] = [];
+    connections[userId].push(res);
 
     //? Send an Initial Event to the Client
     res.write(`data: ${JSON.stringify({ type: "connected", message: "Connected to SSE Stream" })}\n\n`);
@@ -36,7 +37,8 @@ export const sseController = (req, res) => {
         //? Remove Client's response Object from Connections Array
         console.log("Client Disconnected : ", userId);
         clearInterval(keepAlive);
-        delete connections[userId];
+        connections[userId] = connections[userId].filter(conn => conn !== res);
+        if (connections[userId].length === 0) delete connections[userId];
     })
 }
 
@@ -131,7 +133,10 @@ export const sendMessage = async (req, res) => {
                 text: decryptText(messageWithUserData.text),
                 media_url: decryptText(messageWithUserData.media_url),
             };
-            connections[to_user_id].write(`data: ${JSON.stringify({ type: "newMessage", message: decryptedForReceiver })}\n\n`);
+
+            connections[to_user_id].forEach(conn => {
+                conn.write(`data: ${JSON.stringify({ type: "newMessage", message: decryptedForReceiver })}\n\n`);
+            });
         }
 
     } catch (error) {
@@ -167,9 +172,9 @@ export const getChatMessages = async (req, res) => {
         if(messageIds.length > 0) {
             await Message.updateMany({ _id: { $in: messageIds } }, { seen: true });
             if (connections[to_user_id]) {
-                connections[to_user_id].write(
-                    `data: ${JSON.stringify({ type: "messageSeen", userId, messageIds })}\n\n`
-                );
+                connections[to_user_id].forEach(conn => {
+                    conn.write(`data: ${JSON.stringify({ type: "newMessage", message: decryptedForReceiver })}\n\n`);
+                });
             }
         }
 
@@ -214,15 +219,8 @@ export const deleteMessage = async (req, res) => {
         const message = await Message.findById(messageId);
         if (!message) return res.json({ success: false, message: "Message not found" });
 
-        const { from_user_id, to_user_id } = message;
 
         await message.deleteOne();
-
-        
-        const event = `data: ${JSON.stringify({ type: "message_deleted", messageId, from_user_id, to_user_id  })}\n\n`;
-        
-        if (connections[from_user_id]) connections[from_user_id].write(event);
-        if (connections[to_user_id]) connections[to_user_id].write(event);
         
         res.json({ success: true, message: "Message Deleted", deletedMessageId: messageId });
     } catch (error) {

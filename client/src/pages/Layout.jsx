@@ -60,14 +60,14 @@ const Layout = () => {
     }, [user, getToken])
 
   return user ? (
-    <div className='w-full flex h-full'>
+    <div className='w-full flex h-screen'>
       {/* Sidebar for md+ screens */}
       <aside className='hidden md:flex'>
         <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} counts={counts} />
       </aside>
 
       {/* Main area */}
-      <div className='flex-1 flex flex-col bg-slate-50 max-h-screen'>
+      <div className='flex-1 flex flex-col bg-slate-50 max-h-full'>
         {/* TOP BAR (mobile & tablet) */}
         <header className="w-full md:hidden flex items-center justify-between px-4 py-2 border-b bg-white">
           <div className="flex items-center gap-3">
