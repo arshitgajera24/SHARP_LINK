@@ -136,12 +136,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
       const chatContainer = document.getElementById("chat-container");
       if (!chatContainer) return;
 
-      // Only scroll if user is already near bottom
-      const threshold = 100;
-      const isNearBottom =
-        chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < threshold;
-
-      if (initialLoad || isNearBottom) {
+      if (initialLoad || isUserNearBottom) {
         chatContainer.scrollTo({
           top: chatContainer.scrollHeight,
           behavior: initialLoad ? "auto" : "smooth",
@@ -215,7 +210,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
                     
                     {/* Image Message */}
                     {
-                      message.message_type === "image" && <img onClick={() => setShowMedia(message.media_url)} src={message.media_url} alt="Chat Media" className='w-[150px] h-[225px] max-w-sm rounded-lg mb-1 relative' loading='lazy' decoding='async' onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
+                      message.message_type === "image" && <img onClick={() => setShowMedia(message.media_url)} src={message.media_url} alt="Chat Media" className='w-[200px] h-[250px] max-w-sm rounded-lg mb-1 relative' loading='lazy' decoding='async' onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                     }
                     {
                       showMedia != null && <OpenMediaChat setShowMedia={setShowMedia} showMedia={showMedia} />
