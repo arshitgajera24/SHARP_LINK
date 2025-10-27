@@ -14,11 +14,12 @@ export const sseController = (req, res) => {
     console.log("New Client Connected : ", userId);
 
     //? Set Server-Side Headers
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
     res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.flushHeaders();
+    if (res.flushHeaders) res.flushHeaders();
 
     //? Add the Client's Response Object to Connections Object
     connections[userId] = res;
@@ -26,11 +27,16 @@ export const sseController = (req, res) => {
     //? Send an Initial Event to the Client
     res.write(`data: ${JSON.stringify({ type: "connected", message: "Connected to SSE Stream" })}\n\n`);
 
+    const keepAlive = setInterval(() => {
+        res.write(`data: ${JSON.stringify({ type: "ping" })}\n\n`);
+    }, 25000);
+
     //? Handle Client Disconnection
     req.on("close", () => {
         //? Remove Client's response Object from Connections Array
-        delete connections[userId];
         console.log("Client Disconnected : ", userId);
+        clearInterval(keepAlive);
+        delete connections[userId];
     })
 }
 
