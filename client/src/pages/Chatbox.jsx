@@ -160,17 +160,31 @@ const Chatbox = ({ selectedUserId, onBack }) => {
     });
   };
 
-  return user && (
+  return (
     <div className={`flex flex-col flex-1 max-h-[94.5vh] ${pathname === "/messages" ? "sm:max-h-[100vh]" : "sm:max-h-[94.5vh]" }   overflow-x-hidden`}>
       <div onClick={() => { navigate(`/profile/${userId}`); dispatch(closeChat()); }} className='flex items-center gap-2 p-2 md:px-10 bg-white border-b border-gray-300 sticky top-0 z-10 cursor-pointer'>
         <button onClick={(e) => {e.stopPropagation(); onBack && onBack(); }}>
           <ArrowLeft className='w-6 h-6 hover:scale-110 active:scale-95 mr-2 cursor-pointer' />
         </button>
-        <img src={user.profile_picture} alt="profile Picture" className='size-8 rounded-full' loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
-        <div>
-          <p className="font-medium">{user.full_name}</p>
-          <p className="text-sm text-gray-500 -mt-1.5">@{user.username}</p>
-        </div>
+        {
+          user ? (
+            <>
+              <img src={user.profile_picture} alt="profile Picture" className='size-8 rounded-full' loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
+              <div>
+                <p className="font-medium">{user.full_name}</p>
+                <p className="text-sm text-gray-500 -mt-1.5">@{user.username}</p>
+              </div>
+            </>
+          ) : (
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
+                <div className="flex flex-col gap-1">
+                  <div className="w-20 h-3 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="w-16 h-2 bg-gray-100 rounded animate-pulse"></div>
+                </div>
+              </div>
+          )
+        }
       </div>
 
       <div id="chat-container" className='flex-1 overflow-y-auto no-scrollbar overflow-x-hidden p-5 md:px-10 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200'>
