@@ -163,12 +163,12 @@ const Chatbox = ({ selectedUserId, onBack }) => {
   return (
     <div className={`flex flex-col flex-1 max-h-[94.5vh] ${pathname === "/messages" ? "sm:max-h-[100vh]" : "sm:max-h-[94.5vh]" }   overflow-x-hidden`}>
       <div onClick={() => { navigate(`/profile/${userId}`); dispatch(closeChat()); }} className='flex items-center gap-2 p-2 md:px-10 bg-white border-b border-gray-300 sticky top-0 z-10 cursor-pointer'>
-        <button onClick={(e) => {e.stopPropagation(); onBack && onBack(); }}>
-          <ArrowLeft className='w-6 h-6 hover:scale-110 active:scale-95 mr-2 cursor-pointer' />
-        </button>
         {
           user ? (
             <>
+              <button onClick={(e) => {e.stopPropagation(); onBack && onBack(); }}>
+                <ArrowLeft className='w-6 h-6 hover:scale-110 active:scale-95 mr-2 cursor-pointer' />
+              </button>
               <img src={user.profile_picture} alt="profile Picture" className='size-8 rounded-full' loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
               <div>
                 <p className="font-medium">{user.full_name}</p>
