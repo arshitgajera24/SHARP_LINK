@@ -113,7 +113,7 @@ const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
             {
                 messages.length > 0 ? (messages.map((message, index) => {
                     const otherUser = message.from_user_id._id === user.id ? message.to_user_id : message.from_user_id;
-                    return <div onClick={async () => {await markConversationAsSeen(otherUser._id); dispatch(openChatWithUser(otherUser._id)); }} key={index} className='flex items-start gap-2 py-2 hover:bg-slate-100'>
+                    return <div onClick={async () => { dispatch(openChatWithUser(otherUser._id)); markConversationAsSeen(otherUser._id); }} key={index} className='flex items-start gap-2 py-2 hover:bg-slate-100'>
                         <img src={otherUser.profile_picture} alt="Profile Picture" className='w-8 h-8 rounded-full' loading='lazy' decoding='async' onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                         <div className='w-full'>
                             <div className='flex justify-between'>

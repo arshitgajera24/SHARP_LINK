@@ -95,7 +95,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
       const user = connections.find(connection => connection._id === userId);
       setUser(user)
     }
-  }, [connections])
+  }, [connections, userId])
 
   useEffect(() => {
     if (!userId) return;
