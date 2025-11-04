@@ -89,8 +89,8 @@ const Storiesbar = () => {
 
 
   return (
-    <div className={`w-full sm:w-[calc(100%-240px)] lg:max-w-2xl mx-auto px-4 py-2 min-h-[110px]`}>
-        <div className={`flex items-center gap-4 ${loading ? "overflow-hidden" : "overflow-x-auto"} no-scrollbar`}>
+    <div className={`w-full sm:w-[calc(100vw-240px)] lg:max-w-2xl overflow-x-auto no-scrollbar mx-auto px-4 py-2 min-h-[110px]`}>
+        <div className={`flex items-center gap-4 min-w-full justify-start`}>
 
         {loading ? (
             // Show shimmer while stories are loading
