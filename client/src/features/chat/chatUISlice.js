@@ -13,7 +13,6 @@ const chatUISlice = createSlice({
         openChatWithUser: (state, action) => {
             state.open = true;
             state.selectedUserId = action.payload;
-            state.isLoading = false;
         },
         closeChat: (state) => {
             state.open = false;

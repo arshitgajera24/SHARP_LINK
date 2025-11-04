@@ -90,11 +90,9 @@ const Chatbox = ({ selectedUserId, onBack }) => {
   }
 
   useEffect(() => {
-    if(connections.length > 0)
-    {
-      const user = connections.find(connection => connection._id === userId);
-      setUser(user)
-    }
+    if (!userId) return;
+    const foundUser = connections.find(conn => conn._id === userId);
+    if (foundUser) setUser(foundUser);
   }, [connections, userId])
 
   useEffect(() => {
