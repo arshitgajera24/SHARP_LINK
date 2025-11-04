@@ -104,7 +104,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
     const fetchAndSet = async () => {
       try {
         const token = await getToken();
-        await dispatch(fetchMessages({ token, userId })).unwrap();
+        dispatch(fetchMessages({ token, userId }));
       } catch (error) {
         console.error("Failed to fetch messages:", error);
       } finally {
