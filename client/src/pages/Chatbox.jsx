@@ -99,15 +99,17 @@ const Chatbox = ({ selectedUserId, onBack }) => {
 
   useEffect(() => {
     if (!userId) return;
-    setIsLoading(false);
+    setIsLoading(true);
 
     const fetchAndSet = async () => {
       try {
         const token = await getToken();
-        dispatch(fetchMessages({ token, userId }));
-        dispatch(setChatLoaded());
+        await dispatch(fetchMessages({ token, userId })).unwrap();
       } catch (error) {
         console.error("Failed to fetch messages:", error);
+      } finally {
+        setIsLoading(false);
+        dispatch(setChatLoaded());
       }
     };
 
