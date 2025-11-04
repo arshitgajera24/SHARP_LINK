@@ -178,7 +178,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
       <div id="chat-container" className='flex-1 overflow-y-auto no-scrollbar overflow-x-hidden p-5 md:px-10 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200'>
         <div className='space-y-4 max-w-4xl mx-auto'>
           {
-            (isLoading || chatLoading) ? (
+            isLoading ? (
               <div className="flex flex-col items-center justify-center flex-1 text-gray-500">
                 <div className="animate-pulse space-y-3 w-full max-w-md">
                   {[...Array(10)].map((_, i) => (
