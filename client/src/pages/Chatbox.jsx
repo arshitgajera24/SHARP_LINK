@@ -100,6 +100,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
   useEffect(() => {
     if (!userId) return;
     setIsLoading(true);
+    dispatch(setChatLoaded());
 
     const fetchAndSet = async () => {
       try {
@@ -109,7 +110,6 @@ const Chatbox = ({ selectedUserId, onBack }) => {
         console.error("Failed to fetch messages:", error);
       } finally {
         setIsLoading(false);
-        dispatch(setChatLoaded());
       }
     };
 
