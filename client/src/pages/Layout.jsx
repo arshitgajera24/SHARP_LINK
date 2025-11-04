@@ -60,7 +60,7 @@ const Layout = () => {
     }, [user, getToken])
 
   return user ? (
-    <div className='w-full flex h-screen'>
+    <div className='w-full flex h-screen overflow-x-hidden'>
       {/* Sidebar for md+ screens */}
       <aside className='hidden md:flex'>
         <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} counts={counts} />

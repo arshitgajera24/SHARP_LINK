@@ -25,6 +25,7 @@ const Profile = () => {
   const [showEdit, setShowEdit] = useState(false);
   const [isFollowing, setIsFollowing] = useState(currentUser?.following?.includes(profileId) ? true : false);
   const [loaded, setLoaded] = useState(false);
+  const [loading, setIsLoading] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState(null);
   const [userConnections, setUserConnections] = useState([]);
   const dispatch = useDispatch();
@@ -161,16 +162,24 @@ const Profile = () => {
   };
 
   useEffect(() => {
-    if(profileId)
-    {
-      fetchUser(profileId);
-      fetchUserConnections(profileId);
+    const fetchSpecificProfiles = async () => {
+      if(profileId)
+      {
+        setIsLoading(true);
+        await fetchUser(profileId);
+        await fetchUserConnections(profileId);
+        setIsLoading(false);
+      }
+      else
+      {
+        setIsLoading(true);
+        await fetchUser(currentUser._id);
+        await fetchUserConnections(currentUser._id);
+        setIsLoading(false);
+      }
     }
-    else
-    {
-      fetchUser(currentUser._id);
-      fetchUserConnections(currentUser._id);
-    }
+
+    fetchSpecificProfiles();
 
     if (profileId) {
       setIsFollowing(currentUser?.following?.includes(profileId) ? true : false);
@@ -178,11 +187,16 @@ const Profile = () => {
   }, [profileId, currentUser, getToken]);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [profileId]);
+
+  useEffect(() => {
     if (profileId && currentUser?.following) {
       setIsFollowing(currentUser.following.includes(profileId));
     }
   }, [currentUser?.following, profileId]);
 
+  if(loading) return (<Loading />)
 
   return user ? (
     <div className='relative h-full bg-gray-50 p-6 md:overflow-y-scroll'>

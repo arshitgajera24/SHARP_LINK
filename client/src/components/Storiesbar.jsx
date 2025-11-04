@@ -64,8 +64,10 @@ const Storiesbar = () => {
     }
 
     const StorySkeleton = () => (
-        <div className="flex flex-col items-center animate-pulse">
-            <div className="relative size-16 sm:size-18 md:size-20 rounded-full bg-gradient-to-tr from-indigo-400 to-purple-400 opacity-50" />
+        <div className="flex flex-col items-center cursor-pointer animate-pulse">
+            <div className="relative size-16 sm:size-18 md:size-20 rounded-full bg-gradient-to-tr from-indigo-400 to-purple-400 opacity-50 flex items-center justify-center">
+                <div className="size-14 sm:size-16 md:size-18 bg-gray-300 rounded-full"></div>
+            </div>
             <div className="h-3 w-12 bg-gray-300 rounded mt-2" />
         </div>
     );
@@ -87,8 +89,8 @@ const Storiesbar = () => {
 
 
   return (
-    <div className="w-full sm:w-[calc(100vw-240px)] lg:max-w-2xl mx-auto overflow-x-auto no-scrollbar px-4 py-2">
-        <div className="flex items-center gap-4">
+    <div className={`w-full sm:w-[calc(100%-240px)] lg:max-w-2xl mx-auto px-4 py-2 min-h-[110px]`}>
+        <div className={`flex items-center gap-4 ${loading ? "overflow-hidden" : "overflow-x-auto"} no-scrollbar`}>
 
         {loading ? (
             // Show shimmer while stories are loading

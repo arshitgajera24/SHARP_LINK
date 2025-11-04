@@ -45,10 +45,12 @@ const PostCard = ({post, onDelete}) => {
     const handleLike = async () => {
 
         const alreadyLiked = likes.includes(currentUser._id);
-        if (!alreadyLiked)
-        {
+        if (alreadyLiked) {
+            setLikes(prev => prev.filter(id => id !== currentUser._id));
+        } else {
+            setLikes(prev => [...prev, currentUser._id]);
             setShowHeart(true);
-            setTimeout(() => setShowHeart(false), 1000)
+            setTimeout(() => setShowHeart(false), 1000);
         }
 
         try {
@@ -58,25 +60,18 @@ const PostCard = ({post, onDelete}) => {
                 }
             })
 
-            if(data.success)
+            if(!data.success)
             {
-                setLikes(prev => {
-                    if(prev.includes(currentUser._id))
-                    {
-                        return prev.filter(id => id !== currentUser._id)
-                    }
-                    else
-                    {
-                        return [...prev, currentUser._id]
-                    }
-                })
-            }
-            else
-            {
-                toast.error(data.message)
+                toast.error(data.message);
+                setLikes(prev =>
+                    alreadyLiked ? [...prev, currentUser._id] : prev.filter(id => id !== currentUser._id)
+                );
             }
         } catch (error) {
             toast.error(error.message)
+            setLikes(prev =>
+                alreadyLiked ? [...prev, currentUser._id] : prev.filter(id => id !== currentUser._id)
+            );
         }
     }
 
@@ -113,6 +108,23 @@ const PostCard = ({post, onDelete}) => {
         e.preventDefault();
         if(!newComment.trim()) return;
 
+        const tempId = `temp-${Date.now()}`;
+        
+        const newComment2 = {
+            _id: tempId,
+            text: newComment,
+            user: {
+            _id: currentUser._id,
+            full_name: currentUser.full_name,
+            profile_picture: currentUser.profile_picture,
+            },
+            createdAt: new Date().toISOString(),
+            optimistic: true,
+        };
+
+        setComments((prev) => [newComment2, ...prev]);
+        setNewComment("");
+
         try {
             const {data} = await api.post("/api/comment/add", {
                 postId: post._id,
@@ -127,13 +139,13 @@ const PostCard = ({post, onDelete}) => {
             {
                 toast("Comment Posted Successfully! 💭");
                 loadComments();
-                setNewComment("");
             }
             else
             {
                 toast.error(error.message)
             }
         } catch (error) {
+            setComments((prev) => prev.filter((c) => c._id !== tempId));
             toast.error(error.message)
         }
     }
@@ -308,6 +320,19 @@ const PostCard = ({post, onDelete}) => {
         }
         setSelectedUsers([])
     }, [connections, currentUser, showShare]);
+
+    useEffect(() => {
+        if (showComments || showShare || showDeleteConfirm) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "auto";
+        }
+
+        return () => {
+            document.body.style.overflow = "auto";
+        };
+    }, [showComments, showShare, showDeleteConfirm]);
+
 
   return (
     <div className='bg-white rounded-xl shadow p-4 space-y-4 w-full max-w-2xl'>
@@ -499,6 +524,9 @@ const PostCard = ({post, onDelete}) => {
                                                         <span className='text-xs text-gray-400'>• {moment(comment?.createdAt).fromNow()}</span>
                                                     </div>
                                                     <p className='text-sm text-gray-700'>{comment?.text}</p>
+                                                    {comment?.optimistic && (
+                                                        <span className="text-xs text-gray-400 ml-2 italic">Sending...</span>
+                                                    )}
                                                 </div>
                                                 {
                                                     (currentUser && (currentUser._id === comment?.user?._id || currentUser._id === post.user._id)) && (
@@ -516,7 +544,7 @@ const PostCard = ({post, onDelete}) => {
                         </div>
                         <form onSubmit={handleAddComment} className='flex items-center gap-2 p-3 border-t bg-gray-50'>
                             <input type="text" placeholder="Add a Comment..." value={newComment} onChange={(e) => setNewComment(e.target.value)} className='flex-1 bg-white border rounded-full px-4 py-2 text-sm focus:outline-none'/>
-                            <button type="submit" className='bg-indigo-600 text-white p-2 rounded-full font-semibold text-sm cursor-pointer'><SendHorizonal /></button>
+                            <button disabled={!newComment.trim()} type="submit" className='bg-indigo-600 text-white p-2 rounded-full font-semibold text-sm cursor-pointer'><SendHorizonal /></button>
                         </form>
                     </div>
                 </div>

@@ -279,6 +279,19 @@ const StoryViewer = ({ viewStory, setViewStory, setSelectedStoryId = null }) => 
         setSelectedStoryId(currentStory._id);    
     }, [renderContent])
 
+    useEffect(() => {
+        if (showViewsModal || viewStory) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "auto";
+        }
+
+        return () => {
+            document.body.style.overflow = "auto";
+        };
+    }, [showViewsModal, viewStory]);
+
+
   return (
     <div onClick={handleClick} onMouseDown={handleMouseDown} onMouseUp={handleMouseUp} onTouchStart={handleMouseDown} onTouchEnd={handleMouseUp} className='fixed inset-0 h-full bg-black bg-opacity-90 z-110 flex items-center justify-center' style={{backgroundColor: currentStory.media_type === "text" ? currentStory.background_color : "#000000"}}>
       
