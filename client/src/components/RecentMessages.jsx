@@ -106,7 +106,7 @@ const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
         fetchMessages();
     }, [user])    
 
-  return pathName === "/" ? (
+  return pathName === "/" ? loading ? <Loading /> : (
     <div className='bg-white max-w-xs mt-4 p-4 min-h-20 rounded-md shadow text-xs text-slate-800'>
         <h3 className='font-semibold text-slate-8 mb-4'>Recent Messages</h3>
         <div className='flex flex-col max-h-56 overflow-y-scroll no-scrollbar cursor-pointer'>
@@ -141,7 +141,7 @@ const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
         {
             messages.length > 0 ? (messages.map((msg) => {
                 const otherUser = msg.from_user_id._id === user.id ? msg.to_user_id : msg.from_user_id;
-                return <div key={otherUser._id} onClick={async () => {await markConversationAsSeen(otherUser._id); onSelectUser(otherUser._id); }} className={`flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-100 transition ${selectedUserId === otherUser._id ? "bg-gray-200" : ""}`}>
+                return <div key={otherUser._id} onClick={async () => {onSelectUser(otherUser._id); await markConversationAsSeen(otherUser._id); }} className={`flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-100 transition ${selectedUserId === otherUser._id ? "bg-gray-200" : ""}`}>
                     <img src={otherUser.profile_picture} className="w-12 h-12 rounded-full" loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                     <div className="flex-1">
                         <div className="flex justify-between">
