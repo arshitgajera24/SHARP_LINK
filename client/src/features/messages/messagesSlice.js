@@ -46,14 +46,7 @@ const messagesSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder.addCase(fetchMessages.fulfilled, (state, action) => {
-            const newMessages = action.payload;
-
-            const existingMap = new Map(state.messages.map(m => [m._id, m]));
-            for (const msg of newMessages) {
-                existingMap.set(msg._id, { ...existingMap.get(msg._id), ...msg });
-            }
-
-            state.messages = Array.from(existingMap.values()).sort(
+            state.messages = [...action.payload].sort(
                 (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
             );
         })
