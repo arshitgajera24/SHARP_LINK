@@ -64,7 +64,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
     } catch (error) {
       toast.error(error.message);
     } finally {
-      setTimeout(() => setPausePolling(false), 1200);
+      setTimeout(() => setPausePolling(false), 2000);
     }
   }
 
@@ -92,7 +92,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
     } catch (error) {
         toast.error(error.message, { id: toastId });
     } finally {
-      setTimeout(() => setPausePolling(false), 1200);
+      setTimeout(() => setPausePolling(false), 2000);
     }
   }
 
