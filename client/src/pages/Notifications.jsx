@@ -76,7 +76,7 @@ const Notifications = () => {
     if(loading) return <Loading />
 
   return (
-    <div className="w-full max-w-5xl mx-auto mt-6 p-4">
+    <div className="w-full max-w-5xl mx-auto mt-6 p-4 mb-14">
         <h1 className="text-3xl font-bold mb-6">Notifications</h1>
             <div className="flex flex-col gap-4">
                 { notifications.length === 0 && 
