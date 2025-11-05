@@ -34,12 +34,26 @@ const Chatbox = ({ selectedUserId, onBack }) => {
   const connections = useSelector((state) => state.connections.connections);
 
   const sendMessage = async () => {
+    if (!text && !image) return;
+
+    const tempId = `temp-${Date.now()}`;
+    const newMessage = {
+      _id: tempId,
+      from_user_id: currentUser._id,
+      to_user_id: userId,
+      text,
+      media_url: image ? URL.createObjectURL(image) : null,
+      message_type: image ? "image" : "text",
+      createdAt: new Date().toISOString(),
+      sending: true,
+    };
+
+    dispatch(addMessage(newMessage));
     setText("")
     setImage(null);
     setPausePolling(true);
-    try {
-      if(!text && !image) return;
 
+    try {
       const token = await getToken();
 
       const formData = new FormData();
@@ -55,6 +69,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
 
       if(data.success)
       {
+        dispatch(deleteMessage({ messageId: tempId }));
         dispatch(addMessage(data.message))
       }
       else
@@ -64,7 +79,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
     } catch (error) {
       toast.error(error.message);
     } finally {
-      setTimeout(() => setPausePolling(false), 2000);
+      setTimeout(() => setPausePolling(false), 1200);
     }
   }
 
@@ -121,7 +136,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
 
     fetchAndSet();
 
-    const intervalId = setInterval(() => fetchAndSet(), 1000);
+    const intervalId = setInterval(() => fetchAndSet(), 2000);
 
     return () => clearInterval(intervalId);
   }, [userId]);
@@ -217,7 +232,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
               messages.toSorted((a,b) => new Date(a.createdAt) - new Date(b.createdAt)).map((message, index) => {
                 const sentByCurrentUser = message.from_user_id === currentUser._id;
                 
-                return <div key={index} id={`message-${message._id}`} className={`flex flex-col relative transition-all ${message.isDeleting ? "fade-out" : ""} ${message.to_user_id !== user._id ? "items-start" : "items-end"}`}>
+                return <div key={index} id={`message-${message._id}`} className={`flex flex-col relative transition-all ${message.isDeleting ? "fade-out" : ""} ${message.to_user_id !== user._id ? "items-start" : "items-end"} ${message.sending ? "opacity-60" : "opacity-100"}`}>
                   <div className={`p-2 text-sm max-w-xs rounded-lg shadow ${message.to_user_id !== user._id ? "rounded-bl-none bg-gradient-to-l from-violet-50 to-indigo-100" : "rounded-br-none bg-gradient-to-r from-indigo-500 to-purple-700 text-white"}`}>
                     
                     {/* Image Message */}

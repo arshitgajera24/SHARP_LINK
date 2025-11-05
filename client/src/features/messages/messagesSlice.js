@@ -48,25 +48,14 @@ const messagesSlice = createSlice({
         builder.addCase(fetchMessages.fulfilled, (state, action) => {
             const newMessages = action.payload;
 
-            const newIds = newMessages.map((msg) => msg._id);
-            const existing = state.messages.filter((msg) => newIds.includes(msg._id));
+            const existingMap = new Map(state.messages.map(m => [m._id, m]));
+            for (const msg of newMessages) {
+                existingMap.set(msg._id, { ...existingMap.get(msg._id), ...msg });
+            }
 
-            newMessages.forEach((msg) => {
-                const index = existing.findIndex((m) => m._id === msg._id);
-                if (index === -1) {
-                    existing.push(msg);
-                } else {
-                    existing[index] = {
-                        ...existing[index],
-                        ...msg,
-                        seen: existing[index].seen || msg.seen,
-                    };
-                }
-            });
-
-            state.messages = existing.sort(
-                (a,b) => new Date(a.createdAt) - new Date(b.createdAt)
-            )
+            state.messages = Array.from(existingMap.values()).sort(
+                (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+            );
         })
     }
 })
