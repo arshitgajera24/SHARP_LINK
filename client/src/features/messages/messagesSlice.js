@@ -46,9 +46,19 @@ const messagesSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder.addCase(fetchMessages.fulfilled, (state, action) => {
-            state.messages = [...action.payload].sort(
+            const fetchedMessages = action.payload;
+
+            const existingMap = new Map(state.messages.map(msg => [msg._id, msg]));
+
+            fetchedMessages.forEach(msg => {
+                existingMap.set(msg._id, { ...existingMap.get(msg._id), ...msg });
+            });
+
+            const mergedMessages = Array.from(existingMap.values()).sort(
                 (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
             );
+
+            state.messages = mergedMessages;
         })
     }
 })

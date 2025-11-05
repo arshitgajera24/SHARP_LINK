@@ -117,7 +117,6 @@ const Chatbox = ({ selectedUserId, onBack }) => {
     if (foundUser) setUser(foundUser);
   }, [connections, userId])
 
-  console.log(pausePolling);
   useEffect(() => {
     if (!userId) return;
     setIsLoading(true);
