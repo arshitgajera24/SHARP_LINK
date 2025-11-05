@@ -113,7 +113,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
 
     fetchAndSet();
 
-    const intervalId = setInterval(() => fetchAndSet(), 100);
+    const intervalId = setInterval(() => fetchAndSet(), 1000);
 
     return () => clearInterval(intervalId);
   }, [userId]);
