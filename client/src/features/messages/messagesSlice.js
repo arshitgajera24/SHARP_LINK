@@ -46,16 +46,36 @@ const messagesSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder.addCase(fetchMessages.fulfilled, (state, action) => {
-            const fetchedMessages = action.payload;
+            const fetchedMessages = action.payload || [];
 
-            const existingMap = new Map(state.messages.map(msg => [msg._id, msg]));
+            // Map server messages by id
+            const serverMap = new Map(fetchedMessages.map(m => [m._id, m]));
 
-            fetchedMessages.forEach(msg => {
-                existingMap.set(msg._id, { ...existingMap.get(msg._id), ...msg });
+            // Build merged map:
+            //  - take server messages (merge with existing local message if present to preserve flags like `seen`)
+            //  - keep any local optimistic messages (temp-ids) that server doesn't know about
+            const mergedMap = new Map();
+
+            // First, add/merge server messages.
+            fetchedMessages.forEach(serverMsg => {
+            const localMsg = state.messages.find(m => m._id === serverMsg._id);
+            // Merge so we preserve any local-only flags (e.g. seen or sending -> but sending typically won't exist on server)
+            mergedMap.set(serverMsg._id, { ...(localMsg || {}), ...serverMsg });
             });
 
-            const mergedMessages = Array.from(existingMap.values()).sort(
-                (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+            // Then, preserve local optimistic messages (temp ids) that the server doesn't return
+            state.messages.forEach(localMsg => {
+            if (!mergedMap.has(localMsg._id)) {
+                // keep it only if it's a temp/optimistic message (id pattern you use), or you want to keep drafts etc.
+                if (typeof localMsg._id === 'string' && localMsg._id.startsWith('temp-')) {
+                mergedMap.set(localMsg._id, localMsg);
+                }
+            }
+            });
+
+            // Convert to array and sort once.
+            const mergedMessages = Array.from(mergedMap.values()).sort(
+            (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
             );
 
             state.messages = mergedMessages;
