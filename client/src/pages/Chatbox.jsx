@@ -139,7 +139,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
     const intervalId = setInterval(() => fetchAndSet(), 1000);
 
     return () => clearInterval(intervalId);
-  }, [userId]);
+  }, [userId, pausePolling]);
 
   useEffect(() => {
     if (!isLoading && messages.length > 0) {
