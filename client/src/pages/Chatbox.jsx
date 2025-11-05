@@ -117,6 +117,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
     if (foundUser) setUser(foundUser);
   }, [connections, userId])
 
+  console.log(pausePolling);
   useEffect(() => {
     if (!userId) return;
     setIsLoading(true);
@@ -139,7 +140,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
     const intervalId = setInterval(() => fetchAndSet(), 1000);
 
     return () => clearInterval(intervalId);
-  }, [userId, pausePolling]);
+  }, [userId]);
 
   useEffect(() => {
     if (!isLoading && messages.length > 0) {
