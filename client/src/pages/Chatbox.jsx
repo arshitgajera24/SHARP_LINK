@@ -32,18 +32,6 @@ const Chatbox = ({ selectedUserId, onBack }) => {
 
   const connections = useSelector((state) => state.connections.connections);
 
-  const fetchAndSet = async () => {
-      try {
-        const token = await getToken();
-        await dispatch(fetchMessages({ token, userId })).unwrap();
-      } catch (error) {
-        console.error("Failed to fetch messages:", error);
-      } finally {
-        setIsLoading(false);
-        dispatch(setChatLoaded());
-      }
-    };
-
   const sendMessage = async () => {
     setText("")
     setImage(null);
@@ -66,7 +54,6 @@ const Chatbox = ({ selectedUserId, onBack }) => {
       if(data.success)
       {
         dispatch(addMessage(data.message))
-        fetchAndSet();
       }
       else
       {
@@ -91,7 +78,6 @@ const Chatbox = ({ selectedUserId, onBack }) => {
         {
             toast.success(`${data.message} 💨`, { id: toastId });
             dispatch(deleteMessage({messageId}));
-            fetchAndSet();
             setClickedMessageId(null);
         }
         else
@@ -113,11 +99,23 @@ const Chatbox = ({ selectedUserId, onBack }) => {
     if (!userId) return;
     setIsLoading(true);
 
+    const fetchAndSet = async () => {
+      try {
+        const token = await getToken();
+        await dispatch(fetchMessages({ token, userId })).unwrap();
+      } catch (error) {
+        console.error("Failed to fetch messages:", error);
+      } finally {
+        setIsLoading(false);
+        dispatch(setChatLoaded());
+      }
+    };
+
     fetchAndSet();
 
-    // const intervalId = setInterval(() => fetchAndSet(), 500);
+    const intervalId = setInterval(() => fetchAndSet(), 100);
 
-    // return () => clearInterval(intervalId);
+    return () => clearInterval(intervalId);
   }, [userId]);
 
   useEffect(() => {
