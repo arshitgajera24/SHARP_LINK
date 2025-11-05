@@ -19,6 +19,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
   const [loaded, setLoaded] = useState(false);
   const [showMedia, setShowMedia] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [pausePolling, setPausePolling] = useState(false);
 
   const {messages} = useSelector((state) => state.messages);
   const { isLoading: chatLoading } = useSelector((state) => state.chatUI);
@@ -35,6 +36,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
   const sendMessage = async () => {
     setText("")
     setImage(null);
+    setPausePolling(true);
     try {
       if(!text && !image) return;
 
@@ -61,10 +63,13 @@ const Chatbox = ({ selectedUserId, onBack }) => {
       }
     } catch (error) {
       toast.error(error.message);
+    } finally {
+      setTimeout(() => setPausePolling(false), 1200);
     }
   }
 
   const handleDeleteMessage = async (messageId) => {
+    setPausePolling(true);
     const toastId = toast.loading("Deleting...");
     try {
         const token = await getToken();
@@ -86,6 +91,8 @@ const Chatbox = ({ selectedUserId, onBack }) => {
         }
     } catch (error) {
         toast.error(error.message, { id: toastId });
+    } finally {
+      setTimeout(() => setPausePolling(false), 1200);
     }
   }
 
@@ -100,6 +107,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
     setIsLoading(true);
 
     const fetchAndSet = async () => {
+      if (pausePolling) return;
       try {
         const token = await getToken();
         await dispatch(fetchMessages({ token, userId })).unwrap();
