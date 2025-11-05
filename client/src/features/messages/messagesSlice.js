@@ -47,25 +47,24 @@ const messagesSlice = createSlice({
     extraReducers: (builder) => {
         builder.addCase(fetchMessages.fulfilled, (state, action) => {
             const newMessages = action.payload;
-            const merged = [...state.messages];
 
-            newMessages.forEach(msg => {
-                const existingIndex = merged.findIndex(m => m._id === msg._id);
-                if (existingIndex === -1)
-                {
-                    merged.push(msg);
-                }
-                else
-                {
-                    merged[existingIndex] = {
-                        ...merged[existingIndex],
+            const newIds = newMessages.map((msg) => msg._id);
+            const existing = state.messages.filter((msg) => newIds.includes(msg._id));
+
+            newMessages.forEach((msg) => {
+                const index = existing.findIndex((m) => m._id === msg._id);
+                if (index === -1) {
+                    existing.push(msg);
+                } else {
+                    existing[index] = {
+                        ...existing[index],
                         ...msg,
-                        seen: merged[existingIndex].seen || msg.seen,
+                        seen: existing[index].seen || msg.seen,
                     };
                 }
-            })
+            });
 
-            state.messages = merged.sort(
+            state.messages = existing.sort(
                 (a,b) => new Date(a.createdAt) - new Date(b.createdAt)
             )
         })
