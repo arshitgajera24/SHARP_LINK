@@ -121,8 +121,8 @@ const Chatbox = ({ selectedUserId, onBack }) => {
     if (!userId) return;
     setIsLoading(true);
 
-    if (pausePolling) return;
     const fetchAndSet = async () => {
+      if (pausePolling) return;
       try {
         const token = await getToken();
         await dispatch(fetchMessages({ token, userId })).unwrap();
