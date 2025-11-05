@@ -113,9 +113,9 @@ const Chatbox = ({ selectedUserId, onBack }) => {
 
     fetchAndSet();
 
-    const intervalId = setInterval(() => fetchAndSet(), 1000);
+    // const intervalId = setInterval(() => fetchAndSet(), 1000);
 
-    return () => clearInterval(intervalId);
+    // return () => clearInterval(intervalId);
   }, [userId]);
 
   useEffect(() => {
