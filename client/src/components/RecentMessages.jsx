@@ -138,31 +138,35 @@ const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
             }
         </div>
     </div>
-  ) : loading ? <Loading /> : (
+  ) : (
     <div className="flex flex-col h-full">
         <h3 className="p-3 font-semibold border-b border-gray-200 sticky top-0 bg-white z-10">Recent Chats</h3>
         <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 max-h-screen">
         {
-            messages.length > 0 ? (messages.map((msg) => {
-                const otherUser = msg.from_user_id._id === user.id ? msg.to_user_id : msg.from_user_id;
-                return <div key={otherUser._id} onClick={async () => {onSelectUser(otherUser._id); await markConversationAsSeen(otherUser._id); }} className={`flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-100 transition ${selectedUserId === otherUser._id ? "bg-gray-200" : ""}`}>
-                    <img src={otherUser.profile_picture} className="w-12 h-12 rounded-full" loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
-                    <div className="flex-1">
-                        <div className="flex justify-between">
-                            <p className="font-medium">{otherUser.full_name}</p>
-                            <span className="text-xs text-gray-400">{moment(msg.createdAt).fromNow()}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <p className="text-sm text-gray-500 truncate">{getPreviewText(msg)}</p>
-                            {
-                                msg.to_user_id._id === user.id && !msg.seen
-                                && <span className="bg-indigo-500 text-white w-5 h-5 text-[10px] flex items-center justify-center rounded-full">{msg.unseenCount || 1}</span>
-                            }
+            !loading ? (
+                messages.length > 0 ? (messages.map((msg) => {
+                    const otherUser = msg.from_user_id._id === user.id ? msg.to_user_id : msg.from_user_id;
+                    return <div key={otherUser._id} onClick={async () => {onSelectUser(otherUser._id); await markConversationAsSeen(otherUser._id); }} className={`flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-100 transition ${selectedUserId === otherUser._id ? "bg-gray-200" : ""}`}>
+                        <img src={otherUser.profile_picture} className="w-12 h-12 rounded-full" loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
+                        <div className="flex-1">
+                            <div className="flex justify-between">
+                                <p className="font-medium">{otherUser.full_name}</p>
+                                <span className="text-xs text-gray-400">{moment(msg.createdAt).fromNow()}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <p className="text-sm text-gray-500 truncate">{getPreviewText(msg)}</p>
+                                {
+                                    msg.to_user_id._id === user.id && !msg.seen
+                                    && <span className="bg-indigo-500 text-white w-5 h-5 text-[10px] flex items-center justify-center rounded-full">{msg.unseenCount || 1}</span>
+                                }
+                            </div>
                         </div>
                     </div>
-                </div>
-            })) : (
-                <p className="font-light text-center pt-2">No Recent Chats Available</p>
+                })) : (
+                    <p className="font-light text-center pt-2">No Recent Chats Available</p>
+                )
+            ) : (
+                <p className="font-light text-center pt-4">Loading Chats...</p>
             )
         }
         </div>
