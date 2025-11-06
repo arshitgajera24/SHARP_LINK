@@ -182,6 +182,8 @@ const Chatbox = ({ selectedUserId, onBack }) => {
       }
     });
   };
+  
+  const lastSentMessage = [...messages].filter(msg => msg.from_user_id === currentUser._id).toSorted((a,b) => new Date(a.createdAt) - new Date(b.createdAt)).at(-1);
 
   return (
     <div className={`flex flex-col flex-1 max-h-[94.5vh] ${pathname === "/messages" ? "sm:max-h-[100vh]" : "sm:max-h-[94.5vh]" } overflow-x-hidden`}>
@@ -231,6 +233,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
             ) : (
               messages.toSorted((a,b) => new Date(a.createdAt) - new Date(b.createdAt)).map((message, index) => {
                 const sentByCurrentUser = message.from_user_id === currentUser._id;
+                const isLastSentMesage = message._id === lastSentMessage?._id;
                 
                 return <div key={index} id={`message-${message._id}`} className={`flex flex-col relative transition-all ${message.isDeleting ? "fade-out" : ""} ${message.to_user_id !== user._id ? "items-start" : "items-end"} ${message.sending ? "opacity-60" : "opacity-100"}`}>
                   <div className={`p-2 text-sm max-w-xs rounded-lg shadow ${message.to_user_id !== user._id ? "rounded-bl-none bg-gradient-to-l from-violet-50 to-indigo-100" : "rounded-br-none bg-gradient-to-r from-indigo-500 to-purple-700 text-white"}`}>
@@ -359,7 +362,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
                     </div>
                   </div>
                   {
-                    sentByCurrentUser && message.seen && (
+                    sentByCurrentUser && isLastSentMesage && message.seen && (
                       <span className="text-xs text-gray-400 mt-1">Seen</span>
                     )
                   }
