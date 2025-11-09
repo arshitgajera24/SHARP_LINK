@@ -60,7 +60,7 @@ const Layout = () => {
     }, [user, getToken])
 
   return user ? (
-    <div className='w-full flex h-screen overflow-x-hidden'>
+    <div className='w-full flex h-screen no-scrollbar overflow-x-hidden'>
       {/* Sidebar for md+ screens */}
       <aside className='hidden md:flex'>
         <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} counts={counts} />
@@ -102,7 +102,7 @@ const Layout = () => {
         </header>
 
         {/* CONTENT */}
-        <main className='relative no-scrollbar flex-1 flex flex-col xl:overflow-y-auto md:overflow-y-auto'>
+        <main className='relative flex-1 flex flex-col xl:overflow-y-auto md:overflow-y-auto'>
           <Outlet />
           {
             selectedUserId && (pathName === "/" || pathName.startsWith("/profile/")) && (
