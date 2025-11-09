@@ -69,7 +69,7 @@ const Layout = () => {
       {/* Main area */}
       <div className='flex-1 flex flex-col bg-slate-50 max-h-full'>
         {/* TOP BAR (mobile & tablet) */}
-        <header className="w-full md:hidden flex items-center justify-between px-4 py-2 border-b bg-white">
+        <header className={`w-full md:hidden flex items-center justify-between px-4 py-2 border-b bg-white ${pathName === "/messages" ? "hidden" : ""}`}>
           <div className="flex items-center gap-3">
             <img src={assets.link_navbar_logo_removebg} alt="Logo" className="h-8 cursor-pointer" onClick={() => navigate("/")} fetchPriority='high' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
           </div>
