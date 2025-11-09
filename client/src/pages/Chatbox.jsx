@@ -212,7 +212,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
         }
       </div>
 
-      <div id="chat-container" className="flex-1 overflow-y-auto no-scrollbar w-full min-w-0 px-3 sm:px-5 md:px-8 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200" style={{overflowX: "hidden"}}>
+      <div id="chat-container" className="flex-1 overflow-y-auto no-scrollbar w-full min-w-0 px-4 md:px-8 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200" style={{overflowX: "hidden"}}>
         <div className='space-y-4 max-w-4xl mx-auto'>
           {
             isLoading ? (
