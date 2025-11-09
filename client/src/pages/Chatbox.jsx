@@ -186,7 +186,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
   const lastSentMessage = [...messages].filter(msg => msg.from_user_id === currentUser._id).toSorted((a,b) => new Date(a.createdAt) - new Date(b.createdAt)).at(-1);
 
   return (
-    <div className={`flex flex-col flex-1 w-full max-w-full overflow-x-hidden ${pathname === "/messages" ? "sm:max-h-[100vh] max-h-[calc(100vh-4rem)]" : "max-h-[94.5vh]" }`} style={{height: "100%", overflowY: "hidden",}}>
+    <div className={`flex flex-col flex-1 w-full min-w-0 overflow-hidden ${pathname === "/messages" ? "sm:max-h-[100vh] max-h-[calc(100vh-4rem)]" : "max-h-[94.5vh]" }`} style={{height: "100%", overflowY: "hidden",}}>
       <div onClick={() => { navigate(`/profile/${userId}`); dispatch(closeChat()); }} className='flex items-center gap-2 p-2 md:px-10 bg-white border-b border-gray-300 sticky top-0 z-10 cursor-pointer'>
         <button onClick={(e) => {e.stopPropagation(); onBack && onBack(); }}>
           <ArrowLeft className='w-6 h-6 hover:scale-110 active:scale-95 mr-2 cursor-pointer' />
@@ -212,7 +212,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
         }
       </div>
 
-      <div id="chat-container" className='flex-1 overflow-y-auto no-scrollbar overflow-x-hidden p-5 md:px-10 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200'>
+      <div id="chat-container" className="flex-1 overflow-y-auto no-scrollbar w-full min-w-0 px-3 sm:px-5 md:px-8 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200" style={{overflowX: "hidden"}}>
         <div className='space-y-4 max-w-4xl mx-auto'>
           {
             isLoading ? (
@@ -236,7 +236,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
                 const isLastSentMesage = message._id === lastSentMessage?._id;
                 
                 return <div key={index} id={`message-${message._id}`} className={`flex flex-col relative transition-all ${message.isDeleting ? "fade-out" : ""} ${message.to_user_id !== user._id ? "items-start" : "items-end"} ${message.sending ? "opacity-60" : "opacity-100"}`}>
-                  <div className={`p-2 text-sm max-w-xs rounded-lg shadow ${message.to_user_id !== user._id ? "rounded-bl-none bg-gradient-to-l from-violet-50 to-indigo-100" : "rounded-br-none bg-gradient-to-r from-indigo-500 to-purple-700 text-white"}`}>
+                  <div className={`p-2 text-sm rounded-lg shadow break-words w-fit max-w-[85vw] sm:max-w-xs ${message.to_user_id !== user._id ? "rounded-bl-none bg-gradient-to-l from-violet-50 to-indigo-100" : "rounded-br-none bg-gradient-to-r from-indigo-500 to-purple-700 text-white"}`}>
                     
                     {/* Image Message */}
                     {
@@ -373,7 +373,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
         </div>
       </div>
 
-      <div className='sticky bottom-0 w-full px-4 z-20 bg-white py-2 md:pb-2' style={{paddingBottom: "calc(env(safe-area-inset-bottom, 16px) + 4px)"}}>
+      <div className='sticky bottom-0 w-full px-2 sm:px-4 z-20 bg-white py-2 md:pb-2' style={{paddingBottom: "calc(env(safe-area-inset-bottom, 16px) + 4px)"}}>
         <div className='flex items-center gap-3 pl-5 p-1.5 bg-white w-full max-w-xl mx-auto border border-gray-200 dark:border-gray-700 shadow rounded-full'>
           <input onKeyDown={e => e.key === "Enter" && sendMessage()} onChange={(e) => setText(e.target.value)} value={text} type="text" className='flex-1 outline-none text-slate-700' placeholder='Type a Message...' />
           <label htmlFor="image">
