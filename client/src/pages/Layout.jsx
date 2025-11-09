@@ -102,7 +102,7 @@ const Layout = () => {
         </header>
 
         {/* CONTENT */}
-        <main className='relative flex-1 flex flex-col xl:overflow-y-auto md:overflow-y-auto'>
+        <main className='relative no-scrollbar flex-1 flex flex-col xl:overflow-y-auto md:overflow-y-auto'>
           <Outlet />
           {
             selectedUserId && (pathName === "/" || pathName.startsWith("/profile/")) && (
