@@ -14,6 +14,7 @@ import Chatbox from './Chatbox.jsx';
 
 const Layout = () => {
   const user = useSelector((state) => state.user.value);
+  const isChatOpen = useSelector((state) => state.chatUI.open);  
   const {getToken} = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -117,7 +118,9 @@ const Layout = () => {
         </main>
 
         {/* Bottom navigation for mobile */}
-        <MobileBottomNav counts={counts} />
+        {
+          !isChatOpen && <MobileBottomNav counts={counts} />
+        }
       </div>
 
       {/* Mobile drawer: render Sidebar as an absolute panel when sidebarOpen (optional) */}
