@@ -186,7 +186,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
   const lastSentMessage = [...messages].filter(msg => msg.from_user_id === currentUser._id).toSorted((a,b) => new Date(a.createdAt) - new Date(b.createdAt)).at(-1);
 
   return (
-    <div className={`flex flex-col flex-1 max-h-[94.5vh] ${pathname === "/messages" ? "sm:max-h-[100vh]" : "sm:max-h-[94.5vh]" } overflow-x-hidden`}>
+    <div className={`flex flex-col flex-1 w-full max-w-full overflow-x-hidden ${pathname === "/messages" ? "sm:max-h-[100vh] max-h-[calc(100vh-4rem)]" : "max-h-[94.5vh]" }`} style={{height: "100%", overflowY: "hidden",}}>
       <div onClick={() => { navigate(`/profile/${userId}`); dispatch(closeChat()); }} className='flex items-center gap-2 p-2 md:px-10 bg-white border-b border-gray-300 sticky top-0 z-10 cursor-pointer'>
         <button onClick={(e) => {e.stopPropagation(); onBack && onBack(); }}>
           <ArrowLeft className='w-6 h-6 hover:scale-110 active:scale-95 mr-2 cursor-pointer' />
@@ -373,7 +373,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
         </div>
       </div>
 
-      <div className='sticky bottom-0 w-full px-4 z-20 bg-white py-2 md:pb-2 pb-28'>
+      <div className='sticky bottom-0 w-full px-4 z-20 bg-white py-2 md:pb-2' style={{paddingBottom: "calc(env(safe-area-inset-bottom, 16px) + 4px)"}}>
         <div className='flex items-center gap-3 pl-5 p-1.5 bg-white w-full max-w-xl mx-auto border border-gray-200 dark:border-gray-700 shadow rounded-full'>
           <input onKeyDown={e => e.key === "Enter" && sendMessage()} onChange={(e) => setText(e.target.value)} value={text} type="text" className='flex-1 outline-none text-slate-700' placeholder='Type a Message...' />
           <label htmlFor="image">

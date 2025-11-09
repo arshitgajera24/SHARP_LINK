@@ -43,7 +43,7 @@ const Messages = () => {
       </div>
 
       {/* Right Panel: Chat Window */}
-      <div className={`flex-1 flex flex-col ${selectedUserId ? 'flex w-full' : 'hidden md:flex'} max-h-screen`}>
+      <div className={`flex-1 flex flex-col w-full overflow-hidden ${selectedUserId ? 'flex' : 'hidden md:flex'}`}>
         {
           selectedUserId ? (
             <Chatbox selectedUserId={selectedUserId} onBack={() => dispatch(closeChat())} />
