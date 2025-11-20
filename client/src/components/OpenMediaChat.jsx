@@ -19,7 +19,7 @@ const OpenMediaChat = ({setShowMedia, showMedia}) => {
 
   const modal = (
     <div className="fixed inset-0 z-[99999] bg-black/90 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) { setShowMedia(null); } }}>
-        <div className='relative w-full max-w-3xl max-h-[90vh] flex flex-col items-center' onClick={(e) => e.stopPropagation()}>
+        <div className='relative w-full max-w-3xl flex flex-col items-center' onClick={(e) => e.stopPropagation()}>
             <div className='flex items-center justify-between mb-4 cursor-pointer'>
                 <button onClick={() => setShowMedia(null)} className='absolute top-3 left-3 bg-white/10 hover:bg-white/20 p-2 rounded-full backdrop-blur-md z-50'>
                     <ArrowLeft className="text-white w-6 h-6" />
@@ -36,7 +36,7 @@ const OpenMediaChat = ({setShowMedia, showMedia}) => {
                     )
                 }
                 {
-                    showMedia && <img src={showMedia} alt="Chat Media" className={`max-w-full max-h-[90vh] object-contain transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`} onLoad={() => setLoaded(true)} draggable={false} />
+                    showMedia && <img src={showMedia} alt="Chat Media" className={`w-auto h-auto max-h-[85vh] max-w-[100vw] object-contain transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`} onLoad={() => setLoaded(true)} draggable={false} />
                 }
             </div>
         </div>
