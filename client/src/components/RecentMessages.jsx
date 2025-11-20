@@ -86,7 +86,21 @@ const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
         }
 
         if (m.message_type === "text") {
-            return m.text ? m.text.length > 40 ? `${m.text.slice(0, 40)}...` : m.text : "No text message";
+            if(m.text)
+            {
+                if(pathName === "/")
+                {
+                    return m.text.length > 40 ? `${m.text.slice(0, 30)}...` : m.text;
+                }
+                else if(pathName === "/messages" && window.innerWidth >= 640)
+                {
+                    return m.text.length > 30 ? `${m.text.slice(0, 25)}...` : m.text;
+                }
+            }
+            else
+            {
+                return "No text message";
+            }
         }
 
         return "Message is not Available";
