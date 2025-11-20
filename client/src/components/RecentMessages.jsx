@@ -90,7 +90,7 @@ const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
             {
                 if(pathName === "/")
                 {
-                    return m.text.length > 40 ? `${m.text.slice(0, 30)}...` : m.text;
+                    return m.text.length > 40 ? `${m.text.slice(0, 35)}...` : m.text;
                 }
                 else
                 {
@@ -161,14 +161,16 @@ const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
                 messages.length > 0 ? (messages.map((msg) => {
                     const otherUser = msg.from_user_id._id === user.id ? msg.to_user_id : msg.from_user_id;
                     return <div key={otherUser._id} onClick={async () => {onSelectUser(otherUser._id); await markConversationAsSeen(otherUser._id); }} className={`flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-100 transition ${selectedUserId === otherUser._id ? "bg-gray-200" : ""}`}>
-                        <img src={otherUser.profile_picture} className="w-12 h-12 rounded-full object-cover" loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
+                        <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-gray-200">
+                            <img src={otherUser.profile_picture} className="w-12 h-12 object-cover" loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
+                        </div>
                         <div className="flex-1">
                             <div className="flex justify-between">
-                                <p className="font-medium">{otherUser.full_name}</p>
+                                <p className="font-medium truncate">{otherUser.full_name}</p>
                                 <span className="text-xs text-gray-400">{moment(msg.createdAt).fromNow()}</span>
                             </div>
                             <div className="flex justify-between items-center">
-                                <p className="text-sm text-gray-500 truncate">{getPreviewText(msg)}</p>
+                                <p className="text-sm text-gray-500 truncate w-[70%] block">{getPreviewText(msg)}</p>
                                 {
                                     msg.to_user_id._id === user.id && !msg.seen
                                     && <span className="bg-indigo-500 text-white w-5 h-5 text-[10px] flex items-center justify-center rounded-full">{msg.unseenCount || 1}</span>
