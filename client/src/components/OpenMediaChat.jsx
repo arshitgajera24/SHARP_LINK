@@ -13,26 +13,30 @@ const OpenMediaChat = ({setShowMedia, showMedia}) => {
         };
     }, []);
 
+    useEffect(() => {
+        setLoaded(false);
+    }, [showMedia]);
+
   const modal = (
-    <div className='fixed inset-0 z-[99999] bg-black/95 text-white flex flex-col items-center justify-center p-4'>
-        <div className='w-full max-w-md flex flex-col'>
+    <div className="fixed inset-0 z-[99999] bg-black/90 flex items-center justify-center p-4" onClick={() => setShowMedia(null)}>
+        <div className='relative w-full max-w-3xl max-h-[90vh] flex flex-col items-center' onClick={(e) => e.stopPropagation()}>
             <div className='flex items-center justify-between mb-4'>
-                <button onClick={() => setShowMedia(null)} className='text-white p-2 cursor-pointer'>
-                    <ArrowLeft />
+                <button onClick={() => setShowMedia(null)} className='absolute top-3 left-3 bg-white/10 hover:bg-white/20 p-2 rounded-full backdrop-blur-md z-50'>
+                    <ArrowLeft className="text-white w-6 h-6" />
                 </button>
                 <span className='w-10'></span>
             </div>
 
-            <div className='relative w-full h-[80vh] flex items-center justify-center bg-black rounded-lg overflow-hidden'>
+            <div className='w-full h-full flex items-center justify-center bg-black rounded-lg overflow-hidden relative'>
                 {
                     !loaded && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-10 h-10 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <div className="absolute inset-0 flex items-center justify-center z-30">
+                            <div className="w-10 h-10 border-4 border-white/40 border-t-white rounded-full animate-spin"></div>
                         </div>
                     )
                 }
                 {
-                    showMedia && <img src={showMedia} alt="Chat Media" className={`object-contain max-h-full max-w-full transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`} onLoad={() => setLoaded(true)} />
+                    showMedia && <img src={showMedia} alt="Chat Media" className={`max-w-full max-h-[90vh] object-contain transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`} onLoad={() => setLoaded(true)} draggable={false} />
                 }
             </div>
         </div>
