@@ -18,7 +18,7 @@ const OpenMediaChat = ({setShowMedia, showMedia}) => {
     }, [showMedia]);
 
   const modal = (
-    <div className="fixed inset-0 z-[99999] bg-black/90 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) { closeModal(); } }}>
+    <div className="fixed inset-0 z-[99999] bg-black/90 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) { setShowMedia(null); } }}>
         <div className='relative w-full max-w-3xl max-h-[90vh] flex flex-col items-center' onClick={(e) => e.stopPropagation()}>
             <div className='flex items-center justify-between mb-4'>
                 <button onClick={() => setShowMedia(null)} className='absolute top-3 left-3 bg-white/10 hover:bg-white/20 p-2 rounded-full backdrop-blur-md z-50'>
