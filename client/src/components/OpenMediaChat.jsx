@@ -18,7 +18,7 @@ const OpenMediaChat = ({setShowMedia, showMedia}) => {
     }, [showMedia]);
 
   const modal = (
-    <div className="fixed inset-0 z-[99999] bg-black/90 flex items-center justify-center p-4" onClick={() => setShowMedia(null)}>
+    <div className="fixed inset-0 z-[99999] bg-black/90 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) { closeModal(); } }}>
         <div className='relative w-full max-w-3xl max-h-[90vh] flex flex-col items-center' onClick={(e) => e.stopPropagation()}>
             <div className='flex items-center justify-between mb-4'>
                 <button onClick={() => setShowMedia(null)} className='absolute top-3 left-3 bg-white/10 hover:bg-white/20 p-2 rounded-full backdrop-blur-md z-50'>
@@ -27,7 +27,7 @@ const OpenMediaChat = ({setShowMedia, showMedia}) => {
                 <span className='w-10'></span>
             </div>
 
-            <div className='w-full h-full flex items-center justify-center bg-black rounded-lg overflow-hidden relative'>
+            <div className='w-full max-h-[90vh] flex items-center justify-center bg-black rounded-lg overflow-hidden relative'>
                 {
                     !loaded && (
                         <div className="absolute inset-0 flex items-center justify-center z-30">
