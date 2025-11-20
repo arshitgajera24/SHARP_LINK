@@ -10,8 +10,8 @@ const UserProfileInfo = ({user, posts, profileId, setShowEdit}) => {
   return (
     <div className='relative py-4 px-6 md:px-8 bg-white'>
       <div className='flex flex-col md:flex-row items-start gap-6'>
-        <div className='w-32 h-32 border-4 border-white shadow-lg absolute -top-16 rounded-full'>
-            <img src={user.profile_picture} alt="Profile Picture" className='absolute rounded-full z-2' loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
+        <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 border-4 border-white shadow-lg absolute -top-16 rounded-full overflow-hidden z-20">
+            <img src={user.profile_picture} alt="Profile Picture" className='w-full h-full object-cover' loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
         </div>
 
         <div className='w-full pt-16 md:pt-0 md:pl-36'>
