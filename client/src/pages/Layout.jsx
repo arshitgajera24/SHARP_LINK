@@ -56,7 +56,7 @@ const Layout = () => {
 
     useEffect(() => {
       fetchActivitySummary();
-      const interval = setInterval(fetchActivitySummary, 3000);
+      const interval = setInterval(fetchActivitySummary, 15000);
       return () => clearInterval(interval);
     }, [user, getToken])
 
