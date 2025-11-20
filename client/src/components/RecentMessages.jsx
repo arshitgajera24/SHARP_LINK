@@ -86,7 +86,7 @@ const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
         }
 
         if (m.message_type === "text") {
-            return m.text ? m.text : "No text message";
+            return m.text ? m.text.length > 40 ? `${m.text.slice(0, 40)}...` : m.text : "No text message";
         }
 
         return "Message is not Available";
@@ -124,7 +124,7 @@ const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
                                 <div className='flex justify-between'>
                                     <p className='text-gray-500'>{getPreviewText(message)}</p>
                                     {
-                                        message.to_user_id._id === user.id && !message.seen && <p className='bg-indigo-500 text-white w-4 h-4 flex items-center justify-center rounded-full text-[10px]'>1</p>
+                                        message.to_user_id._id === user.id && !message.seen && <p className='bg-indigo-500 text-white w-4 h-4 flex items-center justify-center rounded-full text-[10px]'></p>
                                     }
                                 </div>
                             </div>
