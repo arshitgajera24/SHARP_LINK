@@ -141,13 +141,13 @@ const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
   ) : (
     <div className="flex flex-col h-full">
         <h3 className="p-3 font-semibold border-b border-gray-200 sticky top-0 bg-white z-10">Recent Chats</h3>
-        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 max-h-screen">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 max-h-screen">
         {
             !loading ? (
                 messages.length > 0 ? (messages.map((msg) => {
                     const otherUser = msg.from_user_id._id === user.id ? msg.to_user_id : msg.from_user_id;
                     return <div key={otherUser._id} onClick={async () => {onSelectUser(otherUser._id); await markConversationAsSeen(otherUser._id); }} className={`flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-100 transition ${selectedUserId === otherUser._id ? "bg-gray-200" : ""}`}>
-                        <img src={otherUser.profile_picture} className="w-12 h-12 rounded-full" loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
+                        <img src={otherUser.profile_picture} className="w-12 h-12 rounded-full object-cover" loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                         <div className="flex-1">
                             <div className="flex justify-between">
                                 <p className="font-medium">{otherUser.full_name}</p>
