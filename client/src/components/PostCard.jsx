@@ -142,7 +142,7 @@ const PostCard = ({post, onDelete}) => {
             }
             else
             {
-                toast.error(error.message)
+                toast.error(data.message);
             }
         } catch (error) {
             setComments((prev) => prev.filter((c) => c._id !== tempId));
