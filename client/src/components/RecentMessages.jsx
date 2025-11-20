@@ -92,7 +92,7 @@ const RecentMessages = ({ selectedUserId, onSelectUser = () => {} }) => {
                 {
                     return m.text.length > 40 ? `${m.text.slice(0, 30)}...` : m.text;
                 }
-                else if(pathName !== "/" && window.innerWidth < 640)
+                else
                 {
                     return m.text.length > 30 ? `${m.text.slice(0, 25)}...` : m.text;
                 }
