@@ -194,7 +194,7 @@ const Chatbox = ({ selectedUserId, onBack }) => {
         {
           user ? (
             <>
-              <img src={user.profile_picture} alt="profile Picture" className='size-8 rounded-full' loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
+              <img src={user.profile_picture} alt="profile Picture" className='size-8 rounded-full object-cover' loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
               <div>
                 <p className="font-medium">{user.full_name}</p>
                 <p className="text-sm text-gray-500 -mt-1.5">@{user.username}</p>
