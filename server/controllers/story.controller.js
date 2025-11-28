@@ -4,6 +4,7 @@ import Story from "../models/Story.js";
 import User from "../models/User.js";
 import { inngest } from "../inngest/index.js";
 import { decryptText, encryptText } from "./message.controller.js";
+import redis from "../config/redis.js";
 
 //* Add User Story
 export const addUserStory = async (req, res) => {
@@ -42,6 +43,8 @@ export const addUserStory = async (req, res) => {
             background_color,
         })
 
+        await redis.del(`stories:${userId}`);
+
         //! Schedule Story Deletion after 24 Hours
         await inngest.send({
             name: "app/story.delete",
@@ -59,6 +62,13 @@ export const addUserStory = async (req, res) => {
 export const getUserStories = async (req, res) => {
     try {
         const {userId} = req.auth();
+        
+        const cacheKey = `stories:${userId}`;
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+            return res.json(JSON.parse(cached));
+        }
+        
         const user = await User.findById(userId);
 
         //! User Connections & Followings
@@ -74,7 +84,10 @@ export const getUserStories = async (req, res) => {
             media_url: decryptText(story.media_url)
         }));
 
-        res.json({ success: true, stories: decryptedStories });
+        const responseData = { success: true, stories: decryptedStories };
+        await redis.set(cacheKey, JSON.stringify(responseData), "EX", 20);
+
+        res.json(responseData);
     } catch (error) {
         console.log(error);
         res.json({success: false, message: error.message});
@@ -102,6 +115,8 @@ export const viewStory = async (req, res) => {
             story.view_count.push({ user: userId, viewedAt: new Date() });
             await story.save();
         }
+
+        await redis.del(`stories:${story.user}`);
 
         res.json({ success: true, message: "Story viewed successfully" });
     } catch (error) {
@@ -140,6 +155,8 @@ export const deleteStory = async (req, res) => {
         if (story.user.toString() !== userId) return res.json({ success: false, message: "Not authorized" });
 
         await story.deleteOne();
+
+        await redis.del(`stories:${userId}`);
 
         res.json({ success: true, message: "Story Deleted Successfully", deletedStoryId: storyId });
     } catch (error) {

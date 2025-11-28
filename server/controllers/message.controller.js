@@ -2,6 +2,7 @@ import fs from "fs"
 import imagekit from "../config/imagekit.js";
 import Message from "../models/Message.js";
 import crypto from "crypto"
+import redis from "../config/redis.js";
 
 const IV_LENGTH=16
 
@@ -119,6 +120,11 @@ export const sendMessage = async (req, res) => {
             media_url: decryptText(message.media_url),
         };
 
+        await redis.del(`chat:${userId}:${to_user_id}`);
+        await redis.del(`chat:${to_user_id}:${userId}`);
+        await redis.del(`recentMessages:${userId}`);
+        await redis.del(`recentMessages:${to_user_id}`);
+
         res.json({success: true, message: decryptedMessage});
 
         //! Send Message to to_user_id using SSE
@@ -151,6 +157,12 @@ export const getChatMessages = async (req, res) => {
         const {userId} = req.auth();
         const {to_user_id} = req.body;
 
+        const cacheKey = `chat:${userId}:${to_user_id}`;
+        const cached = await redis.get(cacheKey);
+        if (cached) {            
+            return res.json(JSON.parse(cached));
+        }
+
         const messages = await Message.find({
             $or: [
                 {from_user_id: userId, to_user_id},
@@ -164,6 +176,9 @@ export const getChatMessages = async (req, res) => {
             media_url: decryptText(msg.media_url),
             video_url: decryptText(msg?.post_id?.video_url)
         }));
+
+        const responseData = { success: true, messages: decryptedMessages };
+        await redis.set(cacheKey, JSON.stringify(responseData), "EX", 3);
         
         //! Mark Messages as Seen
         const messagesToMark = await Message.find({from_user_id: to_user_id, to_user_id: userId, seen: false});
@@ -178,7 +193,7 @@ export const getChatMessages = async (req, res) => {
             }
         }
 
-        res.json({success: true, messages: decryptedMessages});
+        res.json(responseData);
     } catch (error) {
         console.log(error);
         res.json({success: false, message: error.message});
@@ -189,6 +204,12 @@ export const getChatMessages = async (req, res) => {
 export const getUserRecentMessages = async (req, res) => {
     try {
         const {userId} = req.auth();
+
+        const cacheKey = `recentMessages:${userId}`;
+        const cached = await redis.get(cacheKey);
+        if (cached) {            
+            return res.json(JSON.parse(cached));
+        }
 
         const messages = await Message.find({
             $or: [
@@ -203,7 +224,10 @@ export const getUserRecentMessages = async (req, res) => {
             media_url: decryptText(msg.media_url)
         }));
 
-        res.json({success: true, messages: decryptedMessages});
+        const responseData = { success: true, messages: decryptedMessages };
+        await redis.set(cacheKey, JSON.stringify(responseData), "EX", 20);
+
+        res.json(responseData);
     } catch (error) {
         console.log(error);
         res.json({success: false, message: error.message});
@@ -219,8 +243,12 @@ export const deleteMessage = async (req, res) => {
         const message = await Message.findById(messageId);
         if (!message) return res.json({ success: false, message: "Message not found" });
 
-
         await message.deleteOne();
+
+        await redis.del(`chat:${message.from_user_id}:${message.to_user_id}`);
+        await redis.del(`chat:${message.to_user_id}:${message.from_user_id}`);
+        await redis.del(`recentMessages:${message.from_user_id}`);
+        await redis.del(`recentMessages:${message.to_user_id}`);
         
         res.json({ success: true, message: "Message Deleted", deletedMessageId: messageId });
     } catch (error) {
