@@ -1,3 +1,4 @@
+import redis from "../config/redis.js";
 import Comment from "../models/Comments.js";
 import Notification from "../models/Notification.js";
 import Post from "../models/Post.js";
@@ -26,7 +27,7 @@ export const addComment = async (req, res) => {
         console.log(post + " -> " + post.user + " -> " + userId);
         
 
-        if (post && post.user !== userId) {
+        if (post && post.user.toString() !== userId) {
             await Notification.create({
                 to_user_id: post.user,
                 from_user_id: userId,
@@ -36,6 +37,9 @@ export const addComment = async (req, res) => {
             });
             console.log("notification");
         }
+
+        await redis.del(`allComments:${postId}`);
+        await redis.del(`post:${postId}`);
 
         res.json({success: true, comment: decryptedComment});
     } catch (error) {
@@ -47,7 +51,14 @@ export const addComment = async (req, res) => {
 //* Get All Comments
 export const getAllComments = async (req, res) => {
     try {
-        const {postId} = req.params;      
+        const {postId} = req.params;   
+        
+        const cacheKey = `allComments:${postId}`;
+        const cached = await redis.get(cacheKey);
+        if(cached)
+        {
+            return res.json(JSON.parse(cached));
+        }
 
         const comments = await Comment.find({ post: postId }).populate("user").sort({ createdAt: -1 });
 
@@ -56,7 +67,10 @@ export const getAllComments = async (req, res) => {
             text: decryptText(c.text.toString())
         }));
 
-        res.json({ success: true, comments: decryptedComments });
+        const responseData = { success: true, comments: decryptedComments };
+        await redis.set(cacheKey, JSON.stringify(responseData), "EX", 30);
+
+        res.json(responseData);
     } catch (error) {
         console.log(error);
         res.json({success: false, message: error.message});
@@ -68,7 +82,15 @@ export const deleteComment = async (req, res) => {
     try {
         const {commentId} = req.params;
 
+        const comment = await Comment.findById(commentId);
         await Comment.findByIdAndDelete(commentId);
+
+        if (!comment) {
+            return res.json({ success: false, message: "Comment not found" });
+        }
+
+        await redis.del(`allComments:${comment.post}`);
+        await redis.del(`post:${comment.post}`);
 
         res.json({ success: true, message: "Comment Deleted" });
     } catch (error) {

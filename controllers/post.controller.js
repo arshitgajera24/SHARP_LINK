@@ -4,6 +4,7 @@ import Post from "../models/Post.js";
 import User from "../models/User.js";
 import { decryptText, encryptText } from "./message.controller.js";
 import Notification from "../models/Notification.js";
+import redis from "../config/redis.js";
 
 //* Add Post
 export const addPost = async (req, res) => {
@@ -11,13 +12,17 @@ export const addPost = async (req, res) => {
         const {userId} = req.auth();
         const {content, post_type, images, video} = req.body;
 
-        await Post.create({
+        const post = await Post.create({
             user: userId,
             content,
             image_urls: images?.map(url => encryptText(url)) || [],
             video_url: encryptText(video || ""),
             post_type
         });
+
+        await redis.del(`feed:${userId}`);
+        await redis.del(`userProfile:${userId}`);
+        await redis.del(`userProfile:${post.user}`);
 
         res.json({success: true, message: "Post Uploaded Successfully"});
     } catch (error) {
@@ -30,6 +35,12 @@ export const addPost = async (req, res) => {
 export const getFeedPosts = async (req, res) => {
     try {
         const {userId} = req.auth();
+
+        const cacheKey = `feed:${userId}`;
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+            return res.json(JSON.parse(cached));
+        }
         
         const user = await User.findById(userId);
 
@@ -43,7 +54,11 @@ export const getFeedPosts = async (req, res) => {
             video_url: decryptText(post.video_url?.toString()),
         }));
 
-        res.json({success: true, posts: decryptedPosts});
+        const responseData = { success: true, posts: decryptedPosts };
+
+        await redis.set(cacheKey, JSON.stringify(responseData), "EX",60);
+
+        res.json(responseData);
     } catch (error) {
         console.log(error);
         res.json({success: false, message: error.message});
@@ -90,6 +105,11 @@ export const likePost = async (req, res) => {
 
             res.json({success: true, message: "Post Liked"});
         }
+        await redis.del(`post:${postId}`);
+        await redis.del(`feed:${userId}`);
+        await redis.del(`feed:${post.user}`);
+        await redis.del(`userProfile:${userId}`);
+        await redis.del(`userProfile:${post.user}`);
     } catch (error) {
         console.log(error);
         res.json({success: false, message: error.message});
@@ -100,8 +120,14 @@ export const likePost = async (req, res) => {
 export const getPostById = async (req, res) => {
     try {
         const { id } = req.params;
+
+        const cacheKey = `post:${id}`;
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+            return res.json(JSON.parse(cached));
+        }
         
-        const post = await Post.findById(id).populate('user', 'full_name username profile_picture').lean();        
+        const post = await Post.findById(id).populate('user', 'full_name username profile_picture');        
 
         if (!post) {
             return res.json({ success: false, message: 'Post not found' });
@@ -113,7 +139,10 @@ export const getPostById = async (req, res) => {
             video_url: decryptText(post.video_url?.toString()),
         };
 
-        res.json({ success: true, post: decryptedPost });
+        const responseData = { success: true, post: decryptedPost };
+        await redis.set(cacheKey, JSON.stringify(responseData), "EX", 300);
+
+        res.json(responseData);
     } catch (error) {
         console.log(error);
         res.json({success: false, message: error.message});
@@ -132,6 +161,12 @@ export const deletePost = async (req, res) => {
         if (post.user.toString() !== userId) return res.json({ success: false, message: "Not authorized" });
 
         await post.deleteOne();
+
+        await redis.del(`post:${postId}`);
+        await redis.del(`feed:${userId}`);
+        await redis.del(`feed:${post.user}`);
+        await redis.del(`userProfile:${userId}`);
+        await redis.del(`userProfile:${post.user}`);
 
         res.json({ success: true, message: "Post Deleted Successfully", deletedPostId: postId });
     } catch (error) {

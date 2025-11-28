@@ -7,6 +7,7 @@ import fs from "fs"
 import { decryptText, encryptText } from "./message.controller.js";
 import Notification from "../models/Notification.js";
 import Message from "../models/Message.js";
+import redis from "../config/redis.js";
 
 //* Get User Data
 export const getUserData = async (req, res) => {
@@ -94,6 +95,8 @@ export const updateUserData = async (req, res) => {
 
         const user = await User.findByIdAndUpdate(userId, updatedData, { new: true })
 
+        await redis.del(`userProfile:${userId}`);
+
         res.json({success: true, user, message: "Profile Updated Successfully"});
     } catch (error) {
         console.log(error);
@@ -158,6 +161,11 @@ export const followUser = async (req, res) => {
                 message: ` Started Following You`
             });
         }
+
+        await redis.del(`userConnections:${userId}`);
+        await redis.del(`userConnections:${id}`);
+        await redis.del(`userProfile:${userId}`);
+        await redis.del(`userProfile:${id}`);
     
         res.json({success: true, message: "Followed Successfully"});
     } catch (error) {
@@ -173,11 +181,11 @@ export const unfollowUser = async (req, res) => {
         const {id} = req.body;
 
         const user = await User.findById(userId);
-        user.following = user.following.filter(user => user !== id);
+        user.following = user.following.filter(uid => uid.toString() !== id);
         await user.save();
 
         const toUser = await User.findById(id);
-        toUser.followers = toUser.followers.filter(user => user !== userId);
+        toUser.followers = toUser.followers.filter(uid => uid.toString() !== userId);
         await toUser.save();
 
         await Notification.findOneAndDelete({
@@ -185,6 +193,11 @@ export const unfollowUser = async (req, res) => {
             from_user_id: userId,
             message: ` Started Following You`
         });
+
+        await redis.del(`userConnections:${userId}`);
+        await redis.del(`userConnections:${id}`);
+        await redis.del(`userProfile:${userId}`);
+        await redis.del(`userProfile:${id}`);
 
         res.json({success: true, message: "Unfollowed Successfully"});
     } catch (error) {
@@ -244,6 +257,9 @@ export const sendConnectionRequest = async (req, res) => {
                     from_user_id: userId,
                     message: ` Sent You a Connection Request`
                 });
+
+                await redis.del(`userConnections:${userId}`);
+                await redis.del(`userConnections:${id}`);
             }
 
             return res.json({success: true, message: "Connection Request Sent Successfully"});
@@ -265,10 +281,15 @@ export const getUserConnections = async (req, res) => {
     try {
         const {userId} = req.auth();
         const profileId = req.body?.profileId || null;
-
         const targetUserId = profileId || userId;
+
+        const cacheKey = `userConnections:${targetUserId}`;
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+            return res.json(JSON.parse(cached));
+        }
         
-        const user = await User.findById(targetUserId).populate("connections followers following");
+        const user = await User.findById(targetUserId).populate("connections followers following").lean();
         if (!user) {
             return res.json({ success: false, message: "User not found" });
         }
@@ -282,7 +303,10 @@ export const getUserConnections = async (req, res) => {
             status: "pending" 
         }).populate("from_user_id")).map((connection) => connection.from_user_id);
 
-        res.json({success: true, connections, followers, following, pendingConnections});
+        const responseData = {success: true, connections, followers, following, pendingConnections};
+        await redis.set(cacheKey, JSON.stringify(responseData), "EX", 30);
+
+        res.json(responseData);
     } catch (error) {
         console.log(error);
         res.json({success: false, message: error.message});
@@ -338,6 +362,9 @@ export const acceptConnectionRequest = async (req, res) => {
 
         connection.status = "accepted";
         await connection.save();
+
+        await redis.del(`userConnections:${userId}`);
+        await redis.del(`userConnections:${id}`);
         
         res.json({success: true, message: "Connection Accepted Successfully" });
     } catch (error) {
@@ -354,6 +381,9 @@ export const rejectConnectionRequest = async (req, res) => {
 
         const deletedConnection = await Connection.findOneAndDelete({ from_user_id: id, to_user_id: userId });
         if (!deletedConnection) return res.json({ success: false, message: "Connection not found" });
+
+        await redis.del(`userConnections:${userId}`);
+        await redis.del(`userConnections:${id}`);
         
         res.json({success: true, message: "Connection Rejected" });
     } catch (error) {
@@ -378,6 +408,9 @@ export const removeFromConnections = async (req, res) => {
         await User.findByIdAndUpdate(id, {
             $pull: { connections: userId }
         });
+
+        await redis.del(`userConnections:${userId}`);
+        await redis.del(`userConnections:${id}`);
         
         res.json({success: true, message: "Connection Removed Successfully" });
     } catch (error) {
@@ -392,7 +425,13 @@ export const getUserProfiles = async (req, res) => {
         const {userId} = req.auth();
         const {profileId} = req.body;
 
-        const profile = await User.findById(profileId);
+        const cacheKey = `userProfile:${profileId}`;
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+            return res.json(JSON.parse(cached));
+        }
+
+        const profile = await User.findById(profileId).lean();
         if(!profile) return res.json({success: false, message: "Profile not Found"});
 
         const connection = await Connection.findOne({
@@ -411,7 +450,10 @@ export const getUserProfiles = async (req, res) => {
             video_url: decryptText(post.video_url)
         }));
 
-        res.json({success: true, profile, posts: decryptedPosts, connectionStatus: connection ? connection.status : null });
+        const responseData = { success: true, profile, posts: decryptedPosts, connectionStatus: connection ? connection.status : null };
+        await redis.set(cacheKey, JSON.stringify(responseData), "EX", 30);
+
+        res.json(responseData);
     } catch (error) {
         console.log(error);
         res.json({success: false, message: error.message});
@@ -443,6 +485,11 @@ export const removeFromFollowers = async (req, res) => {
         await User.findByIdAndUpdate(id, {
             $pull: { following: userId }
         });
+
+        await redis.del(`userConnections:${userId}`);
+        await redis.del(`userConnections:${id}`);
+        await redis.del(`userProfile:${userId}`);
+        await redis.del(`userProfile:${id}`);
         
         res.json({success: true, message: "Follower Removed Successfully" });
     } catch (error) {
