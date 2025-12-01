@@ -39,7 +39,7 @@ const PostCard = ({post, onDelete}) => {
     const dispatch = useDispatch();
     const currentUser = useSelector((state) => state.user.value);
     const connections = useSelector((state) => state.connections.connections);
-    const postWithHashtags = post.content.replace(/(#\w+)/g, '<span class="text-indigo-600">$1</span>')
+    const postWithHashtags = post?.content ? post.content.replace(/(#\w+)/g, '<span class="text-indigo-600">$1</span>') : "";
 
     //* Likes handling
     const handleLike = async () => {
