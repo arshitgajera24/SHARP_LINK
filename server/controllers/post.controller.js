@@ -127,7 +127,7 @@ export const getPostById = async (req, res) => {
             return res.json(JSON.parse(cached));
         }
         
-        const post = await Post.findById(id).populate('user', 'full_name username profile_picture');        
+        const post = await Post.findById(id).populate('user', 'full_name username profile_picture').lean();        
 
         if (!post) {
             return res.json({ success: false, message: 'Post not found' });

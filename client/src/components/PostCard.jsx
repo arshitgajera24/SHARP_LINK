@@ -333,24 +333,23 @@ const PostCard = ({post, onDelete}) => {
         };
     }, [showComments, showShare, showDeleteConfirm]);
 
-
   return (
     <div className='bg-white rounded-xl shadow p-4 space-y-4 w-full max-w-2xl'>
         
         {/* User Info */}
         <div className="flex items-center justify-between">
             <div onClick={() => navigate(`/profile/${post.user._id}`)} className='flex items-center gap-3 cursor-pointer'>
-                <img src={post.user.profile_picture} alt="Profile Picture" className='w-10 h-10 rounded-full shadow' loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
+                <img src={post?.user?.profile_picture} alt="Profile Picture" className='w-10 h-10 rounded-full shadow' loading='lazy' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}} />
                 <div>
                     <div className='flex items-center space-x-1'>
-                        <span>{post.user.full_name}</span>
+                        <span>{post?.user?.full_name}</span>
                         <BadgeCheck className='w-4 h-4 text-blue-500' />
                     </div>
-                    <div className='text-gray-500 text-sm'>@{post.user.username} • {moment(post.createdAt).fromNow()}</div>
+                    <div className='text-gray-500 text-sm'>@{post?.user?.username} • {moment(post?.createdAt).fromNow()}</div>
                 </div>
             </div>
             {
-                post.user._id === currentUser._id && (
+                post?.user?._id === currentUser._id && (
                     <div className="relative">
                         <button onClick={() => setMenuOpen(!menuOpen)} className='p-2 rounded-full hover:bg-gray-100 transition cursor-pointer'>
                             <EllipsisVertical className="w-5 h-5 text-gray-600"/>
@@ -358,7 +357,7 @@ const PostCard = ({post, onDelete}) => {
                         {
                             menuOpen && (
                                 <div className="absolute right-0 mt-2 w-35 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                                    <button onClick={() => { setPostToDelete(post._id); setShowDeleteConfirm(true); setMenuOpen(false); }} className='flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50 cursor-pointer'>
+                                    <button onClick={() => { setPostToDelete(post?._id); setShowDeleteConfirm(true); setMenuOpen(false); }} className='flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50 cursor-pointer'>
                                         <Trash2 className="w-4 h-4" /> Delete Post
                                     </button>
                                 </div>
@@ -480,13 +479,13 @@ const PostCard = ({post, onDelete}) => {
         {/* Actions */}
         <div className='flex items-center gap-4 text-gray-600 text-sm pt-2 border-t border-gray-300'>
             <div className='flex items-center gap-1'>
-                <Heart className={`w-4 h-4 cursor-pointer ${likes.includes(currentUser._id) && "text-red-500 fill-red-500"}`} onClick={handleLike}/>
-                <span>{likes.length}</span>
+                <Heart className={`w-4 h-4 cursor-pointer ${likes?.includes(currentUser._id) && "text-red-500 fill-red-500"}`} onClick={handleLike}/>
+                <span>{likes?.length}</span>
             </div>
 
             <div className='flex items-center gap-1 cursor-pointer' onClick={openComments}>
                 <MessageCircle className='w-4 h-4' />
-                <span>{comments.length}</span>
+                <span>{comments?.length}</span>
             </div>
 
             <div className='flex items-center gap-1 cursor-pointer' onClick={() => setShowShare(true)}>
