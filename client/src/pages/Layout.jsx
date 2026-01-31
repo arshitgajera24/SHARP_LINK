@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 import api from '../api/axios.js';
 import { closeChat } from '../features/chat/chatUISlice.js';
 import Chatbox from './Chatbox.jsx';
+import SEO from '../components/SEO.jsx';
 
 const Layout = () => {
   const user = useSelector((state) => state.user.value);
@@ -62,6 +63,7 @@ const Layout = () => {
 
   return user ? (
     <div className='w-full flex h-screen no-scrollbar overflow-x-hidden'>
+      <SEO />
       {/* Sidebar for md+ screens */}
       <aside className='hidden md:flex'>
         <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} counts={counts} />

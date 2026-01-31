@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { assets } from '../assets/assets.js'
 import { Star } from 'lucide-react'
 import {SignIn} from "@clerk/clerk-react"
+import SEO from '../components/SEO.jsx';
 
 const Login = () => {
 
@@ -9,6 +10,10 @@ const Login = () => {
 
   return (
     <div className='min-h-screen flex flex-col md:flex-row'>
+      <SEO 
+        title="Login - SHARP LINK" 
+        description="Login to SHARP LINK to access your account and connect with the world."
+      />
       
       {/* Backgrounf Image */}
       <img src={assets.bgImage} alt="Bg Image" className='absolute top-0 left-0 -z-1 w-full h-full object-cover' fetchPriority='high' decoding="async" onLoad={() => setLoaded(true)} style={{filter: loaded ? "none" : "blur(20px)", transition: "filter 0.3s ease-out"}}/>
