@@ -187,8 +187,6 @@ const Storiesbar = () => {
                 />
             )
         }
-
-        
     </div>
   );
 };
